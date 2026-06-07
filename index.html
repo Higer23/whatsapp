@@ -1,0 +1,1651 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>SecureCall Pro - Video Konferans Platformu</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    :root {
+      --primary: #25d366;
+      --primary-light: #43b581;
+      --primary-dark: #128c7e;
+      --danger: #f04747;
+      --warning: #faa61a;
+      --success: #43b581;
+      --bg-dark: #0a1f13;
+      --bg-darker: #06120a;
+      --surface: rgba(255,255,255,0.05);
+      --surface-hover: rgba(255,255,255,0.1);
+      --border: rgba(255,255,255,0.1);
+      --text-main: #ffffff;
+      --text-secondary: rgba(255,255,255,0.7);
+      --text-tertiary: rgba(255,255,255,0.4);
+      --text-quaternary: rgba(255,255,255,0.2);
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+      background: linear-gradient(180deg, var(--bg-dark) 0%, var(--bg-darker) 100%);
+      color: var(--text-main);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ========== BACKGROUND ANIMATION ========== */
+    .background-animated {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse 70% 50% at 50% 20%, rgba(37,211,102,0.08) 0%, transparent 70%);
+      z-index: 0;
+      animation: breathe 8s ease-in-out infinite;
+    }
+
+    @keyframes breathe {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; }
+    }
+
+    /* ========== PERMISSION SCREEN ========== */
+    .permission-screen {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0.95), rgba(0,0,0,0.98));
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(20px);
+      animation: fadeInScreen 0.4s ease-out;
+      overflow-y: auto;
+    }
+
+    @keyframes fadeInScreen {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .permission-container {
+      max-width: 420px;
+      width: 90%;
+      background: linear-gradient(135deg, rgba(37,211,102,0.05), rgba(18,140,126,0.03));
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 40px 30px;
+      text-align: center;
+      backdrop-filter: blur(20px);
+      animation: slideUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(60px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .permission-icon {
+      font-size: 80px;
+      margin-bottom: 24px;
+      display: block;
+      animation: bounce 2s ease-in-out infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+
+    .permission-title {
+      font-size: 26px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--text-main);
+    }
+
+    .permission-subtitle {
+      font-size: 13px;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    .permission-description {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 32px;
+      line-height: 1.8;
+    }
+
+    .permission-reason-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+      text-align: left;
+    }
+
+    .permission-reason-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .permission-reason-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .permission-reason-icon {
+      font-size: 18px;
+      min-width: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 2px;
+    }
+
+    .permission-reason-text {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .permission-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      border: none;
+      padding: 16px 24px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 48px;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0.1);
+      transform: scaleX(0);
+      transform-origin: right;
+      transition: transform 0.3s;
+    }
+
+    .btn:active::before {
+      transform: scaleX(1);
+      transform-origin: left;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      box-shadow: 0 8px 24px rgba(37,211,102,0.3);
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 12px 36px rgba(37,211,102,0.4);
+      transform: translateY(-2px);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .btn-secondary:hover {
+      background: var(--surface-hover);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary:active {
+      transform: translateY(0);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .permission-status {
+      font-size: 13px;
+      color: var(--text-tertiary);
+      min-height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .status-spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(37,211,102,0.3);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .status-success {
+      color: var(--success);
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .status-error {
+      color: var(--danger);
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .permission-steps {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 20px;
+      text-align: left;
+    }
+
+    .step {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+      font-size: 13px;
+    }
+
+    .step:last-child {
+      margin-bottom: 0;
+    }
+
+    .step-number {
+      min-width: 24px;
+      height: 24px;
+      background: var(--primary);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .step-text {
+      color: var(--text-secondary);
+      line-height: 1.6;
+      padding-top: 2px;
+    }
+
+    /* ========== CALL SCREEN ========== */
+    .call-screen {
+      position: relative;
+      z-index: 100;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease-out;
+    }
+
+    .call-screen.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    /* Header */
+    .call-header {
+      padding: 60px 20px 24px;
+      text-align: center;
+      flex-shrink: 0;
+      background: linear-gradient(180deg, rgba(37,211,102,0.05), transparent);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .call-label {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .caller-name {
+      font-size: 36px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -1px;
+    }
+
+    .call-status {
+      font-size: 14px;
+      color: var(--text-secondary);
+      transition: all 0.3s;
+      min-height: 20px;
+    }
+
+    .call-timer {
+      font-size: 16px;
+      color: var(--primary);
+      font-variant-numeric: tabular-nums;
+      margin-top: 12px;
+      font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .call-timer-label {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      margin-top: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Avatar */
+    .avatar-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      position: relative;
+      padding: 40px 20px;
+    }
+
+    .avatar-container {
+      position: relative;
+      width: 160px;
+      height: 160px;
+    }
+
+    .avatar-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: rgba(37,211,102,0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: pulse 2.5s ease-in-out infinite;
+      box-shadow: 0 0 0 30px rgba(37,211,102,0.04);
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        box-shadow: 0 0 0 30px rgba(37,211,102,0.04);
+      }
+      50% {
+        box-shadow: 0 0 0 0 rgba(37,211,102,0);
+      }
+    }
+
+    .avatar {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 64px;
+      font-weight: 700;
+      color: white;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      position: relative;
+      z-index: 1;
+    }
+
+    .avatar-status {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 36px;
+      height: 36px;
+      background: var(--success);
+      border: 3px solid var(--bg-dark);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      z-index: 2;
+      box-shadow: 0 4px 12px rgba(67,181,129,0.4);
+    }
+
+    .connection-stats {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .stat-icon {
+      font-size: 20px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-value {
+      font-size: 14px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    /* Controls */
+    .controls-section {
+      padding: 24px 16px 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      flex-shrink: 0;
+      background: linear-gradient(180deg, transparent, rgba(0,0,0,0.3));
+    }
+
+    .controls-row {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .control-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-main);
+      transition: all 0.2s;
+      padding: 8px;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .control-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .control-btn:active .control-icon {
+      transform: scale(0.85);
+      background: var(--surface-hover);
+    }
+
+    .control-btn.active .control-icon {
+      background: rgba(37,211,102,0.25);
+      border-color: rgba(37,211,102,0.5);
+      box-shadow: 0 0 24px rgba(37,211,102,0.2);
+      color: var(--primary);
+    }
+
+    .control-label {
+      font-size: 11px;
+      color: var(--text-secondary);
+      font-weight: 500;
+      text-align: center;
+      width: 70px;
+      line-height: 1.3;
+    }
+
+    .end-call-row {
+      display: flex;
+      justify-content: center;
+      margin-top: 8px;
+    }
+
+    .end-call-btn {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--danger), #e63838);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      box-shadow: 0 12px 36px rgba(240,71,71,0.4);
+      transition: all 0.15s;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .end-call-btn:active {
+      transform: scale(0.88);
+    }
+
+    .end-call-btn:hover {
+      box-shadow: 0 16px 48px rgba(240,71,71,0.5);
+    }
+
+    /* Info Panel */
+    .info-panel {
+      position: fixed;
+      bottom: 160px;
+      left: 16px;
+      right: 16px;
+      background: var(--surface);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      z-index: 50;
+      font-size: 12px;
+      color: var(--text-secondary);
+      max-height: 80px;
+      overflow-y: auto;
+      transition: all 0.3s;
+      opacity: 0;
+      pointer-events: none;
+      animation: slideInUp 0.3s ease-out;
+    }
+
+    @keyframes slideInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .info-panel.show {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .info-panel-title {
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 4px;
+    }
+
+    /* Call End Screen */
+    .call-end-screen {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(180deg, var(--bg-dark), var(--bg-darker));
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      padding: 40px 20px;
+      text-align: center;
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .end-icon {
+      font-size: 72px;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+    }
+
+    .end-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .end-duration {
+      font-size: 16px;
+      color: var(--primary);
+      font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .end-stats-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 20px;
+      width: 100%;
+      max-width: 300px;
+    }
+
+    .end-stat {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      font-size: 13px;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .end-stat:last-child {
+      border-bottom: none;
+    }
+
+    .end-stat-icon {
+      margin-right: 8px;
+    }
+
+    .restart-btn {
+      margin-top: 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: white;
+      transition: all 0.2s;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .restart-btn-icon {
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      box-shadow: 0 12px 36px rgba(37,211,102,0.3);
+      transition: all 0.2s;
+    }
+
+    .restart-btn:active .restart-btn-icon {
+      transform: scale(0.9);
+    }
+
+    .restart-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-weight: 500;
+      margin-top: 4px;
+    }
+
+    /* Hidden Elements */
+    video, canvas {
+      display: none;
+    }
+
+    /* Scrollbar Styling */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(37,211,102,0.3);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(37,211,102,0.5);
+    }
+
+    /* Responsive */
+    @media (max-height: 700px) {
+      .call-header {
+        padding: 40px 20px 16px;
+      }
+
+      .caller-name {
+        font-size: 28px;
+      }
+
+      .avatar-container {
+        width: 120px;
+        height: 120px;
+      }
+
+      .avatar {
+        width: 105px;
+        height: 105px;
+        font-size: 48px;
+      }
+
+      .controls-section {
+        padding: 16px 16px 50px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .permission-container {
+        border-radius: 16px;
+        padding: 32px 24px;
+      }
+
+      .permission-icon {
+        font-size: 64px;
+        margin-bottom: 20px;
+      }
+
+      .permission-title {
+        font-size: 24px;
+      }
+
+      .control-icon {
+        width: 56px;
+        height: 56px;
+        font-size: 22px;
+      }
+
+      .control-label {
+        width: 60px;
+        font-size: 10px;
+      }
+
+      .end-call-btn {
+        width: 72px;
+        height: 72px;
+        font-size: 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- BACKGROUND -->
+  <div class="background-animated"></div>
+
+  <!-- PERMISSION SCREEN -->
+  <div class="permission-screen" id="permissionScreen">
+    <div class="permission-container">
+      <span class="permission-icon" id="permIcon">📱</span>
+      
+      <div class="permission-subtitle">ZORUNLU İZİNLER</div>
+      <div class="permission-title" id="permTitle">Kamera Erişimi Gerekli</div>
+      
+      <div class="permission-description">
+        SecureCall Pro'yu kullanmak için kamera ve konum erişim izinleri gereklidir. 
+        Bu izinler yalnızca bu uygulamada kullanılır.
+      </div>
+
+      <div class="permission-reason-box">
+        <div class="permission-reason-item">
+          <div class="permission-reason-icon">📹</div>
+          <div class="permission-reason-text">
+            <strong>Kamera:</strong> Video görüşmeleri için gereklidir
+          </div>
+        </div>
+        <div class="permission-reason-item">
+          <div class="permission-reason-icon">📍</div>
+          <div class="permission-reason-text">
+            <strong>Konum:</strong> Ağ teşhisi ve bağlantı optimizasyonu için
+          </div>
+        </div>
+      </div>
+
+      <div class="permission-buttons">
+        <button class="btn btn-primary" id="requestPermBtn">
+          <span>✅ İzinleri Ver</span>
+        </button>
+        <button class="btn btn-secondary" id="infoBtn">
+          <span>ℹ️ Daha Fazla Bilgi</span>
+        </button>
+      </div>
+
+      <div class="permission-status" id="permStatus"></div>
+
+      <div class="permission-steps" id="stepsContainer" style="display: none;">
+        <div style="font-weight: 600; margin-bottom: 12px; color: var(--text-main);">İzin Talep Süreci:</div>
+        <div class="step">
+          <div class="step-number">1</div>
+          <div class="step-text">Kamera erişim izni istenecektir. <strong>İzin Ver</strong>'i tıklayın.</div>
+        </div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <div class="step-text">Konum erişim izni istenecektir. <strong>İzin Ver</strong>'i tıklayın.</div>
+        </div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <div class="step-text">Her iki izin alındıktan sonra arama otomatik başlayacaktır.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CALL SCREEN -->
+  <div class="call-screen" id="callScreen">
+    <div class="call-header">
+      <div class="call-label">Arayan:</div>
+      <div class="caller-name" id="callerName">Nina</div>
+      <div class="call-status" id="callStatus">Bağlanıyor...</div>
+      <div class="call-timer" id="callTimer">00:00</div>
+      <div class="call-timer-label">Arama Süresi</div>
+    </div>
+
+    <div class="avatar-section">
+      <div class="avatar-container">
+        <div class="avatar-ring"></div>
+        <div class="avatar" id="avatar">N</div>
+        <div class="avatar-status" id="avatarStatus">✓</div>
+      </div>
+
+      <div class="connection-stats">
+        <div class="stat-item">
+          <div class="stat-icon">🎥</div>
+          <div class="stat-label">Kamera</div>
+          <div class="stat-value" id="cameraStat">Aktif</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-icon">🎤</div>
+          <div class="stat-label">Ses</div>
+          <div class="stat-value" id="audioStat">Açık</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-icon">📡</div>
+          <div class="stat-label">Sinyal</div>
+          <div class="stat-value" id="signalStat">Güçlü</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-panel" id="infoPanel">
+      <div class="info-panel-title">✅ Sistemin Durumu</div>
+      <div id="infoPanelContent">Kamera ve konum izinleri başarıyla alındı</div>
+    </div>
+
+    <div class="controls-section">
+      <div class="controls-row">
+        <button class="control-btn" id="btnMicrophone" title="Mikrofon">
+          <div class="control-icon">🎤</div>
+          <span class="control-label">Mikrofon</span>
+        </button>
+        <button class="control-btn" id="btnSpeaker" title="Hoparlör">
+          <div class="control-icon">🔊</div>
+          <span class="control-label">Hoparlör</span>
+        </button>
+        <button class="control-btn" id="btnCamera" title="Kamera">
+          <div class="control-icon">📹</div>
+          <span class="control-label">Kamera</span>
+        </button>
+        <button class="control-btn" id="btnSettings" title="Ayarlar">
+          <div class="control-icon">⚙️</div>
+          <span class="control-label">Ayarlar</span>
+        </button>
+      </div>
+      <div class="end-call-row">
+        <button class="end-call-btn" id="btnEndCall" title="Aramayı Sonlandır">📞</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HIDDEN MEDIA ELEMENTS -->
+  <video id="videoElement" autoplay playsinline muted></video>
+  <canvas id="canvas"></canvas>
+
+  <script>
+    // ============================================================================
+    // SECURECALL PRO - VIDEO KONFERANS UYGULAMASI
+    // Zorunlu Kamera & Konum İzinleri, Tarayıcı-Özgü Popup'lar
+    // Eğitim Amaçlı, Tamamen Güvenli & Yasal
+    // ============================================================================
+
+    /* ========== STATE MANAGEMENT ========== */
+    const app = {
+      // Call state
+      callActive: false,
+      callStartTime: null,
+      callDuration: 0,
+      timerInterval: null,
+
+      // Permission state
+      permissionsGranted: {
+        camera: false,
+        location: false,
+        both: false
+      },
+
+      // Media state
+      mediaStream: null,
+      cameraEnabled: false,
+      microphoneEnabled: false,
+      speakerEnabled: false,
+
+      // UI state
+      uiInitialized: false,
+
+      // Device info
+      currentCaller: '',
+      deviceInfo: {}
+    };
+
+    /* ========== CONSTANTS ========== */
+    const CALLER_NAMES = [
+      'Nina', 'Serkan', 'Ayşe', 'Mehmet', 'Zeynep', 'Emre', 
+      'Fatma', 'Ahmet', 'Elif', 'Kerem', 'Leyla', 'Berkay',
+      'Gül', 'Barış', 'Selin', 'Umut', 'Gözde', 'Deniz',
+      'Tuğba', 'Soner', 'İpek', 'Merve'
+    ];
+
+    const AVATAR_COLORS = [
+      'linear-gradient(135deg, #25d366, #128c7e)',
+      'linear-gradient(135deg, #667eea, #764ba2)',
+      'linear-gradient(135deg, #f093fb, #f5576c)',
+      'linear-gradient(135deg, #4facfe, #00f2fe)',
+      'linear-gradient(135deg, #43e97b, #38f9d7)',
+      'linear-gradient(135deg, #fa709a, #fee140)',
+      'linear-gradient(135deg, #ff6b6b, #ee5a6f)',
+      'linear-gradient(135deg, #a8edea, #fed6e3)'
+    ];
+
+    /* ========== UTILITY FUNCTIONS ========== */
+
+    /**
+     * Tarayıcı türünü algıla
+     */
+    function detectBrowser() {
+      const ua = navigator.userAgent;
+      
+      if (ua.indexOf('OPR/') > -1 || ua.indexOf('Opera') > -1) {
+        return 'opera';
+      } else if (ua.indexOf('Edg') > -1) {
+        return 'edge';
+      } else if (ua.indexOf('Chrome') > -1 && ua.indexOf('Chromium') === -1) {
+        return 'chrome';
+      } else if (ua.indexOf('Safari') > -1 && ua.indexOf('Chrome') === -1) {
+        return 'safari';
+      } else if (ua.indexOf('Firefox') > -1) {
+        return 'firefox';
+      }
+      return 'unknown';
+    }
+
+    /**
+     * Tarayıcı bilgilerini al
+     */
+    function getBrowserInfo() {
+      const ua = navigator.userAgent;
+      let browserName = 'Bilinmiyor';
+      let osName = 'Bilinmiyor';
+
+      if (ua.indexOf('OPR/') > -1 || ua.indexOf('Opera') > -1) {
+        browserName = 'Opera';
+      } else if (ua.indexOf('Edg') > -1) {
+        browserName = 'Microsoft Edge';
+      } else if (ua.indexOf('Chrome') > -1) {
+        browserName = 'Google Chrome';
+      } else if (ua.indexOf('Safari') > -1) {
+        browserName = 'Apple Safari';
+      } else if (ua.indexOf('Firefox') > -1) {
+        browserName = 'Mozilla Firefox';
+      }
+
+      if (ua.indexOf('Windows') > -1) {
+        osName = 'Windows';
+      } else if (ua.indexOf('Mac') > -1) {
+        osName = 'macOS';
+      } else if (ua.indexOf('Android') > -1) {
+        osName = 'Android';
+      } else if (ua.indexOf('iOS') > -1 || ua.indexOf('iPhone') > -1) {
+        osName = 'iOS';
+      } else if (ua.indexOf('Linux') > -1) {
+        osName = 'Linux';
+      }
+
+      return { browserName, osName };
+    }
+
+    /**
+     * Cihaz bilgilerini topla
+     */
+    function collectDeviceInfo() {
+      const browserInfo = getBrowserInfo();
+      
+      app.deviceInfo = {
+        browser: browserInfo.browserName,
+        os: browserInfo.osName,
+        screenResolution: `${window.screen.width}x${window.screen.height}`,
+        language: navigator.language,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        platform: navigator.platform,
+        devicePixelRatio: window.devicePixelRatio,
+        hardwareConcurrency: navigator.hardwareConcurrency || 'N/A',
+        maxTouchPoints: navigator.maxTouchPoints || 0
+      };
+
+      console.log('📱 Cihaz Bilgileri:', app.deviceInfo);
+    }
+
+    /**
+     * Rastgele arayan seç
+     */
+    function selectRandomCaller() {
+      return CALLER_NAMES[Math.floor(Math.random() * CALLER_NAMES.length)];
+    }
+
+    /**
+     * Rastgele avatar rengi seç
+     */
+    function getRandomAvatarColor() {
+      return AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)];
+    }
+
+    /**
+     * Tarayıcı popup durumunu güncelle
+     */
+    function updatePermissionStatus(message, isLoading = false) {
+      const statusEl = document.getElementById('permStatus');
+      if (isLoading) {
+        statusEl.innerHTML = `<span class="status-spinner"></span><span>${message}</span>`;
+      } else {
+        statusEl.textContent = message;
+        statusEl.className = 'permission-status';
+      }
+    }
+
+    /**
+     * Hata mesajı göster
+     */
+    function showError(message) {
+      const statusEl = document.getElementById('permStatus');
+      statusEl.textContent = message;
+      statusEl.classList.add('status-error');
+    }
+
+    /**
+     * Başarı mesajı göster
+     */
+    function showSuccess(message) {
+      const statusEl = document.getElementById('permStatus');
+      statusEl.textContent = message;
+      statusEl.classList.add('status-success');
+    }
+
+    /* ========== PERMISSION SYSTEM ========== */
+
+    /**
+     * Kamera izni iste (tarayıcı-özgü)
+     */
+    async function requestCameraPermission() {
+      const browser = detectBrowser();
+      
+      updatePermissionStatus('📷 Kamera erişim izni isteniyor...', true);
+
+      try {
+        // getUserMedia çağrısı tarayıcı-özgü popup açar
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            facingMode: 'user'
+          },
+          audio: false
+        });
+
+        app.mediaStream = stream;
+        app.permissionsGranted.camera = true;
+        app.cameraEnabled = true;
+
+        showSuccess('✅ Kamera izni alındı!');
+        console.log('✅ Kamera İzni: Başarılı');
+        
+        return true;
+
+      } catch (error) {
+        console.error('❌ Kamera Hatası:', error);
+        
+        if (error.name === 'NotAllowedError') {
+          showError('❌ Kamera izni reddedildi. Lütfen ayarlardan izin verin.');
+          console.warn('Kullanıcı kamera izni reddetti');
+        } else if (error.name === 'NotFoundError') {
+          showError('❌ Kamera cihazı bulunamadı.');
+          console.warn('Kamera cihazı yok');
+        } else if (error.name === 'NotReadableError') {
+          showError('❌ Kamera başka bir uygulama tarafından kullanılıyor.');
+          console.warn('Kamera meşgul');
+        } else if (error.name === 'SecurityError') {
+          showError('❌ Güvenlik hatası - HTTPS gereklidir.');
+          console.warn('HTTPS gerekli');
+        } else {
+          showError(`❌ Kamera erişimi başarısız: ${error.message}`);
+        }
+        
+        return false;
+      }
+    }
+
+    /**
+     * Konum izni iste (tarayıcı-özgü)
+     */
+    async function requestLocationPermission() {
+      return new Promise((resolve) => {
+        if (!navigator.geolocation) {
+          updatePermissionStatus('⚠️ Konum desteklenmiyor - devam ediliyor...', false);
+          setTimeout(() => resolve(false), 1000);
+          return;
+        }
+
+        updatePermissionStatus('📍 Konum erişim izni isteniyor...', true);
+
+        // geolocation.getCurrentPosition çağrısı tarayıcı-özgü popup açar
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            app.permissionsGranted.location = true;
+            
+            const coords = {
+              latitude: position.coords.latitude.toFixed(5),
+              longitude: position.coords.longitude.toFixed(5),
+              accuracy: Math.round(position.coords.accuracy),
+              altitude: position.coords.altitude ? Math.round(position.coords.altitude) : null
+            };
+
+            showSuccess('✅ Konum izni alındı!');
+            console.log('✅ Konum İzni: Başarılı', coords);
+            
+            setTimeout(() => resolve(true), 500);
+          },
+          (error) => {
+            console.warn('⚠️ Konum Hatası:', error);
+            
+            switch (error.code) {
+              case 1:
+                showError('⚠️ Konum izni reddedildi - devam ediliyor...');
+                console.warn('Kullanıcı konum izni reddetti');
+                break;
+              case 2:
+                showError('⚠️ Konum alınamadı - devam ediliyor...');
+                console.warn('Konum verisi alınamadı');
+                break;
+              case 3:
+                showError('⚠️ Konum zaman aşımı - devam ediliyor...');
+                console.warn('Konum zaman aşımı');
+                break;
+              default:
+                showError('⚠️ Konum hatası - devam ediliyor...');
+            }
+            
+            setTimeout(() => resolve(false), 1000);
+          },
+          {
+            timeout: 5000,
+            enableHighAccuracy: false,
+            maximumAge: 0
+          }
+        );
+      });
+    }
+
+    /**
+     * Zorunlu izin mekanizması
+     */
+    async function requestRequiredPermissions() {
+      const requestBtn = document.getElementById('requestPermBtn');
+      requestBtn.disabled = true;
+
+      try {
+        // Adım 1: Kamera izni (zorunlu)
+        const cameraGranted = await requestCameraPermission();
+
+        if (!cameraGranted) {
+          // Kamera başarısız, tekrar dene seçeneği göster
+          requestBtn.disabled = false;
+          requestBtn.textContent = '🔄 Tekrar Dene';
+          return false;
+        }
+
+        // Adım 2: Konum izni
+        await new Promise(r => setTimeout(r, 1000));
+        const locationGranted = await requestLocationPermission();
+
+        // Her iki izin durumunu kontrol et
+        app.permissionsGranted.both = cameraGranted;
+
+        console.log('📊 İzin Özeti:', app.permissionsGranted);
+
+        // Başarı - aramayı başlat
+        if (cameraGranted) {
+          setTimeout(() => {
+            startCallScreen();
+          }, 1000);
+          return true;
+        }
+
+      } catch (error) {
+        console.error('❌ İzin Talep Hatası:', error);
+        showError('❌ İzin talep sırasında hata oluştu');
+        requestBtn.disabled = false;
+      }
+
+      return false;
+    }
+
+    /* ========== CALL MANAGEMENT ========== */
+
+    /**
+     * Arama ekranını başlat
+     */
+    function startCallScreen() {
+      // Arayan seç
+      app.currentCaller = selectRandomCaller();
+      const avatarColor = getRandomAvatarColor();
+
+      // UI'yi güncelle
+      document.getElementById('callerName').textContent = app.currentCaller;
+      document.getElementById('avatar').textContent = app.currentCaller[0].toUpperCase();
+      document.getElementById('avatar').style.background = avatarColor;
+
+      // Kamerayı başlat
+      if (app.mediaStream) {
+        const video = document.getElementById('videoElement');
+        video.srcObject = app.mediaStream;
+        app.cameraEnabled = true;
+      }
+
+      // Arama durumunu ayarla
+      app.callActive = true;
+      app.callStartTime = Date.now();
+      document.getElementById('callStatus').textContent = '✅ Bağlandı';
+
+      // UI geçişi
+      document.getElementById('permissionScreen').style.display = 'none';
+      document.getElementById('callScreen').classList.add('active');
+
+      // Timer'ı başlat
+      startCallTimer();
+
+      // Info panel'i göster
+      showInfoPanel('✅ Sistemin Durumu', 'Kamera ve konum izinleri başarıyla alındı');
+
+      // Ses efektleri
+      playConnectSound();
+
+      console.log('📞 Arama Başlatıldı:', app.currentCaller);
+    }
+
+    /**
+     * Arama timerini başlat
+     */
+    function startCallTimer() {
+      if (app.timerInterval) clearInterval(app.timerInterval);
+
+      app.timerInterval = setInterval(() => {
+        if (!app.callActive) return;
+
+        app.callDuration = Math.floor((Date.now() - app.callStartTime) / 1000);
+        const minutes = Math.floor(app.callDuration / 60);
+        const seconds = app.callDuration % 60;
+
+        const timerEl = document.getElementById('callTimer');
+        if (timerEl) {
+          timerEl.textContent = 
+            String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+        }
+      }, 1000);
+    }
+
+    /**
+     * Info panel'i göster
+     */
+    function showInfoPanel(title, content) {
+      const panel = document.getElementById('infoPanel');
+      document.getElementById('infoPanelContent').textContent = content;
+      panel.classList.add('show');
+
+      setTimeout(() => {
+        panel.classList.remove('show');
+      }, 5000);
+    }
+
+    /**
+     * Aramayı sonlandır
+     */
+    function endCall() {
+      if (!app.callActive) return;
+
+      app.callActive = false;
+
+      // Timer'ı durdur
+      if (app.timerInterval) {
+        clearInterval(app.timerInterval);
+      }
+
+      // Stream'i durdur
+      if (app.mediaStream) {
+        app.mediaStream.getTracks().forEach(track => {
+          track.stop();
+        });
+      }
+
+      // Ses efekti
+      playHangupSound();
+
+      // End screen göster
+      showCallEndScreen();
+    }
+
+    /**
+     * Arama sonu ekranını göster
+     */
+    function showCallEndScreen() {
+      const minutes = Math.floor(app.callDuration / 60);
+      const seconds = app.callDuration % 60;
+      const durationStr = String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+
+      const endScreenHTML = `
+        <div class="call-end-screen">
+          <div class="end-icon">📵</div>
+          <div class="end-title">Arama Sonlandırıldı</div>
+          <div class="end-duration">${durationStr}</div>
+
+          <div class="end-stats-container">
+            <div class="end-stat">
+              <span>📱 Arayan:</span>
+              <strong>${app.currentCaller}</strong>
+            </div>
+            <div class="end-stat">
+              <span>📊 Kalite:</span>
+              <strong>Mükemmel</strong>
+            </div>
+            <div class="end-stat">
+              <span>📡 Bağlantı:</span>
+              <strong>Güvenli</strong>
+            </div>
+            <div class="end-stat">
+              <span>🎥 Kamera:</span>
+              <strong>1280x720</strong>
+            </div>
+          </div>
+
+          <button class="restart-btn" onclick="location.reload()">
+            <div class="restart-btn-icon">📞</div>
+            <span class="restart-label">Yeniden Ara</span>
+          </button>
+        </div>
+      `;
+
+      // Body'yi tamamen değiştir
+      document.body.innerHTML = `
+        ${endScreenHTML}
+        <style>
+          body { 
+            background: linear-gradient(180deg, #0d2818 0%, #06120a 100%);
+          }
+        </style>
+      `;
+    }
+
+    /* ========== CONTROL HANDLERS ========== */
+
+    /**
+     * Kontrol durumunu güncelle
+     */
+    function updateControlState(btnId, isActive) {
+      const btn = document.getElementById(btnId);
+      if (isActive) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    }
+
+    /**
+     * Mikrofon kontrolü
+     */
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('btnMicrophone').addEventListener('click', function() {
+        app.microphoneEnabled = !app.microphoneEnabled;
+        updateControlState('btnMicrophone', app.microphoneEnabled);
+        console.log('🎤 Mikrofon:', app.microphoneEnabled ? 'Açık' : 'Kapalı');
+        
+        if (app.mediaStream) {
+          app.mediaStream.getAudioTracks().forEach(track => {
+            track.enabled = app.microphoneEnabled;
+          });
+        }
+      });
+
+      /**
+       * Hoparlör kontrolü
+       */
+      document.getElementById('btnSpeaker').addEventListener('click', function() {
+        app.speakerEnabled = !app.speakerEnabled;
+        updateControlState('btnSpeaker', app.speakerEnabled);
+        console.log('🔊 Hoparlör:', app.speakerEnabled ? 'Açık' : 'Kapalı');
+      });
+
+      /**
+       * Kamera kontrolü
+       */
+      document.getElementById('btnCamera').addEventListener('click', function() {
+        if (!app.mediaStream) {
+          alert('❌ Kamera mevcut değil');
+          return;
+        }
+        
+        app.cameraEnabled = !app.cameraEnabled;
+        updateControlState('btnCamera', app.cameraEnabled);
+        
+        app.mediaStream.getVideoTracks().forEach(track => {
+          track.enabled = app.cameraEnabled;
+        });
+        
+        console.log('📹 Kamera:', app.cameraEnabled ? 'Açık' : 'Kapalı');
+      });
+
+      /**
+       * Ayarlar
+       */
+      document.getElementById('btnSettings').addEventListener('click', function() {
+        const settingsMsg = `
+⚙️ AYARLAR
+
+📞 Arayan: ${app.currentCaller}
+
+Bağlantı Durumu:
+━━━━━━━━━━━━━━━━
+🎤 Mikrofon: ${app.microphoneEnabled ? '✅ Açık' : '❌ Kapalı'}
+📹 Kamera: ${app.cameraEnabled ? '✅ Açık' : '❌ Kapalı'}
+🔊 Hoparlör: ${app.speakerEnabled ? '✅ Açık' : '❌ Kapalı'}
+
+Süresi: ${document.getElementById('callTimer').textContent}
+
+Cihaz Bilgileri:
+━━━━━━━━━━━━━━━━
+🌐 Tarayıcı: ${app.deviceInfo.browser || 'Bilinmiyor'}
+🖥️ İşletim Sistemi: ${app.deviceInfo.os || 'Bilinmiyor'}
+📱 Ekran: ${app.deviceInfo.screenResolution || 'Bilinmiyor'}
+🌍 Dil: ${app.deviceInfo.language || 'Bilinmiyor'}
+🕐 Saat Dilimi: ${app.deviceInfo.timezone || 'Bilinmiyor'}
+        `.trim();
+        
+        alert(settingsMsg);
+      });
+
+      /**
+       * Arama sonu
+       */
+      document.getElementById('btnEndCall').addEventListener('click', endCall);
+
+      /**
+       * İzin bilgisi
+       */
+      document.getElementById('infoBtn').addEventListener('click', function() {
+        const container = document.getElementById('stepsContainer');
+        container.style.display = container.style.display === 'none' ? 'block' : 'none';
+      });
+
+      /**
+       * İzin talep
+       */
+      document.getElementById('requestPermBtn').addEventListener('click', () => {
+        requestRequiredPermissions();
+      });
+
+      // Cihaz bilgilerini topla
+      collectDeviceInfo();
+    });
+
+    /* ========== SOUND EFFECTS ========== */
+
+    /**
+     * Bağlantı sesi
+     */
+    function playConnectSound() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const now = audioCtx.currentTime;
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.frequency.setValueAtTime(800, now);
+        osc.frequency.setValueAtTime(1000, now + 0.1);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.setValueAtTime(0, now + 0.2);
+
+        osc.start(now);
+        osc.stop(now + 0.2);
+      } catch (e) {
+        console.warn('Ses oynatılamadı');
+      }
+    }
+
+    /**
+     * Kapanış sesi
+     */
+    function playHangupSound() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const now = audioCtx.currentTime;
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.frequency.setValueAtTime(400, now);
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.setValueAtTime(0, now + 0.3);
+
+        osc.start(now);
+        osc.stop(now + 0.3);
+      } catch (e) {
+        console.warn('Ses oynatılamadı');
+      }
+    }
+
+    /* ========== INITIALIZATION ========== */
+
+    /**
+     * Sayfayı hazırla
+     */
+    window.addEventListener('load', () => {
+      console.log('🚀 SecureCall Pro Başlatıldı');
+      console.log('📱 Tarayıcı:', detectBrowser());
+      console.log('🔐 Zorunlu İzin Mekanizması Aktif');
+    });
+
+    /**
+     * Sayfa kapatılmadan önce temizle
+     */
+    window.addEventListener('beforeunload', () => {
+      if (app.mediaStream) {
+        app.mediaStream.getTracks().forEach(track => track.stop());
+      }
+      if (app.timerInterval) {
+        clearInterval(app.timerInterval);
+      }
+    });
+  </script>
+</body>
+</html>
